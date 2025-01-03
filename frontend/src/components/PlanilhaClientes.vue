@@ -56,7 +56,7 @@
               <td>
                 <button @click="editarCliente(index)" class="btn btn-edit">Editar</button>
                 <button @click="excluirCliente(index)" class="btn btn-delete">Excluir</button>
-                <button @click="abrirTransferModal(cliente)">Transferir</button>
+                <button @click="abrirTransferModal(cliente)">Transferir Maquininha</button>
 
               </td>
             </tr>
@@ -89,20 +89,20 @@
 import ModalDeEdicao from './ModalDeEdicao.vue';
 import ModalTransferencia from './ModalTransferencia.vue';
 import clienteService from "@/services/clienteService";
-import transferenciaService from "@/services/transferenciaService"; // Ajuste o caminho se necessário
+import transferenciaService from "@/services/transferenciaService"; 
 
 export default {
   components: {
     ModalDeEdicao,
-    ModalTransferencia, // Adicionando o componente de ModalTransferencia
+    ModalTransferencia, 
   },
   data() {
     return {
       clientes: [],
       isEditing: false,
       clienteEditado: null,
-      isTransferModalVisible: false, // Controle de visibilidade do modal de transferência
-      maquininhaSelecionada: null, // Para armazenar a maquininha que será transferida
+      isTransferModalVisible: false, 
+      maquininhaSelecionada: null, 
       novoCliente: {
         cliente: "",
         status: "ativado",
@@ -116,7 +116,7 @@ export default {
     async getClientes() {
       try {
         const response = await clienteService.getClientes();
-        console.log("Clientes carregados:", response); // Log para verificar a resposta
+        console.log("Clientes carregados:", response); 
         this.clientes = response;
       } catch (error) {
         console.error("Erro ao carregar clientes:", error.response?.data || error.message);
@@ -134,17 +134,17 @@ export default {
           if (!confirmarTransferencia) {
             return;
           } else {
-            // Desativa a maquininha do cliente anterior
+          
             await clienteService.updateCliente(existeMaquininhaAtiva.id, { status: 'desativado' });
           }
         }
 
         const response = await clienteService.addCliente(this.novoCliente);
-        console.log("Resposta da API ao adicionar cliente:", response); // Log para verificar a resposta
+        console.log("Resposta da API ao adicionar cliente:", response);
 
         if (response && response.id) {
           this.resetForm();
-          this.getClientes(); // Atualiza a lista de clientes após adicionar um novo cliente
+          this.getClientes(); 
         } else {
           console.error("Cliente adicionado não possui um id:", response);
           alert("Erro ao adicionar cliente. Cliente adicionado não possui um id.");
@@ -166,19 +166,19 @@ export default {
           if (!confirmarTransferencia) {
             return;
           } else {
-            // Desativa a maquininha do cliente anterior
+
             await clienteService.updateCliente(existeMaquininhaAtiva.id, { status: 'desativado' });
           }
         }
 
         const response = await clienteService.updateCliente(clienteAtualizado.id, clienteAtualizado);
-        console.log("Resposta da API ao atualizar cliente:", response); // Log para verificar a resposta
+        console.log("Resposta da API ao atualizar cliente:", response);
 
         const index = this.clientes.findIndex((c) => c.id === clienteAtualizado.id);
         if (index !== -1) {
           this.clientes.splice(index, 1, { ...clienteAtualizado, ...response });
           this.fecharModal();
-          this.getClientes(); // Atualiza a lista de clientes após editar um cliente
+          this.getClientes(); 
         } else {
           console.error("Cliente a ser editado não encontrado:", clienteAtualizado);
           alert("Erro ao salvar cliente editado. Cliente não encontrado.");
@@ -193,7 +193,7 @@ export default {
       try {
         const cliente = this.clientes[index];
         await clienteService.deleteCliente(cliente.id);
-        this.getClientes(); // Atualiza a lista de clientes após excluir um cliente
+        this.getClientes();
       } catch (error) {
         console.error("Erro ao excluir cliente:", error.response?.data || error.message);
         alert("Erro ao excluir cliente. Verifique os logs para mais detalhes.");
@@ -236,8 +236,8 @@ export default {
 
     // Abrir o modal de transferência
     abrirTransferModal(cliente) {
-      this.maquininhaSelecionada = cliente;  // Armazena o cliente selecionado
-      this.isTransferModalVisible = true;    // Abre o modal
+      this.maquininhaSelecionada = cliente;
+      this.isTransferModalVisible = true;
     },
         // Fechar o modal de transferência
     fecharTransferModal() {

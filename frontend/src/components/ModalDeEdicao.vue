@@ -4,7 +4,7 @@
       <h2>Editar Cliente</h2>
       <form @submit.prevent="salvarClienteEditado">
         <div class="form-group-container">
-          <!-- Campos do formulário para editar o cliente -->
+
           <div class="form-group">
             <label for="cliente">Cliente:</label>
             <input type="text" id="cliente" v-model="clienteTemp.cliente" required />
@@ -20,7 +20,10 @@
 
           <div class="form-group">
             <label for="numeroserie">Número de Série:</label>
-            <input type="text" id="numeroserie" v-model="clienteTemp.numeroserie" required />
+            <div class="input-with-button">
+              <input type="text" id="numeroserie" v-model="clienteTemp.numeroserie" required />
+              <button type="button" @click="abrirCadastroMaquininhas" class="btn-icon">+</button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -32,10 +35,11 @@
             <label for="datafinal">Data Final:</label>
             <input type="date" id="datafinal" v-model="clienteTemp.datafinal" required />
           </div>
-
-          <button type="submit" class="btn">Salvar</button>
         </div>
+
+        <button type="submit" class="btn">Salvar</button>
       </form>
+
       <button @click="fecharModal" class="btn btn-close">Fechar</button>
     </div>
   </div>
@@ -57,7 +61,7 @@ export default {
   },
   data() {
     return {
-      clienteTemp: {}, // Inicializa clienteTemp vazio
+      clienteTemp: {}, 
     };
   },
   watch: {
@@ -75,34 +79,39 @@ export default {
     },
   },
   methods: {
-  async salvarClienteEditado() {
-    try {
-      const clienteEnviado = {
-        ...this.clienteTemp,
-      };
+    async salvarClienteEditado() {
+      try {
+        const clienteEnviado = {
+          ...this.clienteTemp,
+        };
 
-      const response = await clienteService.updateCliente(clienteEnviado.id, clienteEnviado);
-      if (response) {
-        this.$emit("atualizarClientes");
-        this.fecharModal();
-      } else {
-        alert("Erro ao atualizar cliente.");
+        const response = await clienteService.updateCliente(clienteEnviado.id, clienteEnviado);
+        if (response) {
+          this.$emit("atualizarClientes");
+          this.fecharModal();
+        } else {
+          alert("Erro ao atualizar cliente.");
+        }
+      } catch (error) {
+        console.error("Erro ao salvar cliente editado:", error);
+        alert("Não foi possível salvar as alterações. Tente novamente.");
       }
-    } catch (error) {
-      console.error("Erro ao salvar cliente editado:", error);
-      alert("Não foi possível salvar as alterações. Tente novamente.");
-    }
-  },
+    },
 
-  fecharModal() {
-    this.$emit("fechar");
+    abrirCadastroMaquininhas() {
+      // Emite um evento para o componente pai abrir o modal de cadastro de maquininhas
+      this.$emit("abrirCadastroMaquininhas");
+    },
+
+    fecharModal() {
+      this.$emit("fechar");
+    },
   },
-},
 };
 </script>
 
-
 <style scoped>
+
 .modal {
   position: fixed;
   top: 0;
@@ -149,9 +158,14 @@ h2 {
   margin-bottom: 8px;
 }
 
+.input-with-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 input,
-select,
-textarea {
+select {
   width: 100%;
   padding: 6px;
   font-size: 0.85rem;
@@ -161,12 +175,18 @@ textarea {
   background-color: #fff;
 }
 
-textarea {
-  height: 70px;
-}
-
 button {
   cursor: pointer;
+}
+
+.btn-icon {
+  padding: 5px 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: #322871;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
 }
 
 button[type="submit"] {
@@ -178,25 +198,8 @@ button[type="submit"] {
   margin-top: 20px;
 }
 
-button[type="button"] {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  margin-top: 10px;
-}
-
 button:hover {
   opacity: 0.9;
-}
-
-button[type="submit"]:hover {
-  background-color: #4a9e45;
-}
-
-button[type="button"]:hover {
-  background-color: #c82333;
 }
 
 .btn-close {
