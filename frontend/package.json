@@ -11,6 +11,8 @@
     "axios": "^1.7.9",
     "core-js": "^3.8.3",
     "dubysheet": "file:",
+    "swal": "^0.1.0",
+    "sweetalert2": "^11.15.10",
     "vue": "^3.2.13"
   },
   "devDependencies": {

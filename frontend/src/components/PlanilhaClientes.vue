@@ -2,6 +2,9 @@
   <div class="app">
     <div class="main-container">
       <div class="form-container">
+        <div class="image-bolota">
+      <img src="@/assets/iconbolota.png" alt="icone ao lado do filtro" height="90" />
+    </div>
         <h1><strong>Cadastro de Cliente</strong></h1>
         <form @submit.prevent="addCliente">
           <div class="form-group">
@@ -54,9 +57,15 @@
               <td>{{ formatarData(cliente.datainicial) }}</td>
               <td>{{ formatarData(cliente.datafinal) }}</td>
               <td>
-                <button @click="editarCliente(index)" class="btn btn-edit">Editar</button>
-                <button @click="excluirCliente(index)" class="btn btn-delete">Excluir</button>
-                <button @click="abrirTransferModal(cliente)">Transferir Maquininha</button>
+                <button @click="editarCliente(index)" class="btn btn-edit">
+                  <img src="@/assets/lapis.png" alt="Editar" class="icon-img">
+                </button>
+                <button @click="excluirCliente(index)" class="btn btn-delete">
+                  <img src="@/assets/lixeira.png" alt="Editar" class="icon-img">
+                </button>
+                <button @click="abrirTransferModal(cliente)">
+                  <img src="@/assets/transferir.png" alt="Editar" class="icon-img">
+                </button>
 
               </td>
             </tr>
@@ -90,6 +99,7 @@ import ModalDeEdicao from './ModalDeEdicao.vue';
 import ModalTransferencia from './ModalTransferencia.vue';
 import clienteService from "@/services/clienteService";
 import transferenciaService from "@/services/transferenciaService"; 
+import Swal from "sweetalert2";
 
 export default {
   components: {
@@ -190,14 +200,28 @@ export default {
     },
 
     async excluirCliente(index) {
+      const { isConfirmed } = await Swal.fire({
+        title: "Tem certeza?",
+        text: "A exclusão não pode ser desfeita!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#412884",
+        confirmButtonText: "Sim, excluir",
+        cancelButtonText: "Cancelar",
+      });
+
+      if (isConfirmed) {
       try {
         const cliente = this.clientes[index];
         await clienteService.deleteCliente(cliente.id);
         this.getClientes();
-      } catch (error) {
-        console.error("Erro ao excluir cliente:", error.response?.data || error.message);
-        alert("Erro ao excluir cliente. Verifique os logs para mais detalhes.");
-      }
+        Swal.fire("Excluído!", "O cliente foi excluído com sucesso.", "success");
+        } catch (error) {
+          console.error("Erro ao excluir cliente:", error.response?.data || error.message);
+          Swal.fire("Erro!", "Não foi possível excluir o cliente. Tente novamente.", "error");
+        }
+    }
     },
     
 
@@ -307,6 +331,7 @@ export default {
     margin-right: 20px;
     padding: 30px;
     align-items: center;
+    background-color: #ffffff;
   }
 
   .relatorio-container {
@@ -314,15 +339,21 @@ export default {
     margin-left: 0;
   }
 
+  .image-bolota{
+    display: flex;
+    align-items: center;
+    padding: 15px;
+  }
+
   h1 {
     font-size: 24px;
-    color: #12283f;
+    color: #412884;
     margin-bottom: 20px;
   }
 
   h2 {
     font-size: 20px;
-    color: #12283f;
+    color: #322871;
     margin-bottom: 20px;
   }
 
@@ -333,7 +364,7 @@ export default {
   label {
     display: block;
     font-size: 14px;
-    color: #322871;
+    color: #412884;
     margin-bottom: 6px; 
   }
 
@@ -374,6 +405,12 @@ export default {
     border-radius: 3px;
   }
 
+  .icon-img {
+  width:15px;
+  height:15px;
+  object-fit: contain;
+}
+
   th, td {
     text-align: left;
     padding: 7px;
@@ -390,7 +427,7 @@ export default {
   }
 
   .btn {
-    padding: 10px 15px;
+    padding: 25px 20px;
     border-radius: 5px;
   }
 

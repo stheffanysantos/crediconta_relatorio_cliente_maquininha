@@ -1,8 +1,9 @@
 import express from "express";
-import { criarTransferencia } from "../controllers/transferencia.js"; 
+import { criarTransferencia } from "../controllers/transferencia.js";
 
-const router = express.Router();  
+const router = express.Router();
 
-router.post("/", criarTransferencia); 
+// Rota para criar transferência de maquininha
+router.post("/", criarTransferencia);
 
 export default router;

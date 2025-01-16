@@ -1,10 +1,18 @@
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-const db = mysql.createConnection({
-  host: 'localhost',  // Ajuste para o host do seu banco de dados
-  user: 'root',       // Ajuste para seu usuário do banco
-  password: 'tatu9012',  // Ajuste para sua senha
-  database: 'simplisaldo'  // Ajuste para o nome do seu banco de dados
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
+
+// Criação do pool de conexões usando variáveis do .env
+const pool = mysql.createPool({
+  host: process.env.DB_HOST, // Usando variáveis do .env
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10, // Número máximo de conexões no pool
+  queueLimit: 0, // Sem limite de filas
 });
 
-export default db;
+export default pool;
