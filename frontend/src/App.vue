@@ -6,6 +6,10 @@
     <PlanilhaClientes />
     <CreditoTaxa />
     <RodapePedido />
+    <loginUser />
+    <ImportCsv />
+
+
   </div>
 </template>
 
@@ -13,6 +17,8 @@
 import CreditoTaxa from './components/CreditoTaxa.vue';
 import PlanilhaClientes from './components/PlanilhaClientes.vue';
 import RodapePedido from './components/RodapePedido.vue';
+import loginUser from './components/loginUser.vue';
+import ImportCsv from './components/ImportCsv.vue';
 
 
 export default {
@@ -20,6 +26,8 @@ export default {
     RodapePedido,
     PlanilhaClientes,
     CreditoTaxa,
+    loginUser,
+    ImportCsv,
   },
 };
 </script>

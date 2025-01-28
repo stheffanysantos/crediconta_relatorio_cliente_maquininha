@@ -63,7 +63,7 @@
               <td>{{ taxa.percentage }}%</td>
               <td>{{ taxa.active ? "Sim" : "Não" }}</td>
               <td>
-                <button @click="excluirTaxa(index)" class="btn btn-delete">Desativar</button>
+                <button @click="excluirTaxa(index)" class="btn btn-delete">Excluir</button>
               </td>
             </tr>
           </tbody>

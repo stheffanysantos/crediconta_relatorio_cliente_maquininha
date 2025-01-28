@@ -15,4 +15,8 @@ const pool = mysql.createPool({
   queueLimit: 0, // Sem limite de filas
 });
 
+// Obtendo a chave secreta do JWT
+const jwtSecret = process.env.JWT_SECRET;
+
 export default pool;
+export { jwtSecret }; // Exporte a chave secreta, caso precise usá-la em outro lugar

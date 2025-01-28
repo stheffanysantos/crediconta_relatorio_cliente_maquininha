@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cadastroclienteRoutes from "./routes/cadastrocliente.js";
 import transferenciasRoutes from "./routes/transferencia.js";
 import creditotaxaRoutes from "./routes/creditotaxa.js";
+import userRoutes from './routes/userRoutes.js';
 import db from "./db.js"; // Certifique-se de que o arquivo `db.js` exporta uma instância de conexão válida
 
 dotenv.config(); // Carrega variáveis de ambiente do arquivo .env
@@ -16,7 +17,7 @@ const app = express();
 
 // Middlewares
 app.use(express.json()); // Suporte para JSON no corpo das requisições
-app.use(cors()); // Configuração de CORS
+app.use(cors());
 console.log("Middlewares configurados.");
 
 // Rota principal para verificação do servidor
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 app.use("/api/cadastrocliente", cadastroclienteRoutes);
 app.use("/api/transferencis", transferenciasRoutes);
 app.use("/api/creditotaxa", creditotaxaRoutes);
+app.use("/api/users", userRoutes);
 console.log("Rotas configuradas.");
 
 // Middleware para rotas não encontradas
@@ -43,7 +45,7 @@ app.use((err, req, res, next) => {
 
 // Função para iniciar o servidor
 const startServer = () => {
-  app.listen(PORT, () => {
+  app.listen(8800, () => {
     console.log(`Servidor rodando na porta ${PORT}...`);
   });
 };

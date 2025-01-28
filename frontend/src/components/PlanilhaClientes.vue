@@ -12,9 +12,15 @@
             <input type="text" id="cliente" v-model="novoCliente.cliente" required />
           </div>
           <div class="form-group">
+            <label for="maquineta">Maquineta:</label>
+              <select id="maquineta" v-model="novoCliente.maquineta" required>
+                <option value="stone">Stone</option>
+              </select>
+          </div>
+          <div class="form-group">
             <label for="status">Status:</label>
             <select id="status" v-model="novoCliente.status" required>
-              <option value="ativado">Ativado</option>
+              <option value="ativado">Ativo</option>
               <option value="desativado">Desativado</option>
             </select>
           </div>
@@ -41,21 +47,25 @@
             <tr>
               <th>ID</th>
               <th>Cliente</th>
+              <th>Maquineta</th>
               <th>Status</th>
               <th>Número de Série</th>
               <th>Data Inicial</th>
               <th>Data Final</th>
+              <th>Total</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(cliente, index) in clientes" :key="cliente.id">
               <td>{{ cliente.id }}</td>
-              <td>{{ cliente.cliente }}</td>
-              <td>{{ cliente.status }}</td>
-              <td>{{ cliente.numeroserie }}</td>
-              <td>{{ formatarData(cliente.datainicial) }}</td>
-              <td>{{ formatarData(cliente.datafinal) }}</td>
+              <td>{{ cliente.Cliente }}</td>
+              <td>{{ cliente.Maquineta }}</td>
+              <td>{{ cliente.Status }}</td>
+              <td>{{ cliente.NumeroSerie }}</td>
+              <td>{{ formatarData(cliente.DataInicial) }}</td>
+              <td>{{ formatarData(cliente.DataFinal) }}</td>
+              <td>{{ cliente.Total }}</td>
               <td>
                 <button @click="editarCliente(index)" class="btn btn-edit">
                   <img src="@/assets/lapis.png" alt="Editar" class="icon-img">
@@ -114,11 +124,13 @@ export default {
       isTransferModalVisible: false, 
       maquininhaSelecionada: null, 
       novoCliente: {
-        cliente: "",
-        status: "ativado",
-        numeroserie: "",
-        datainicial: "",
-        datafinal: "",
+        Cliente: "",
+        Maquineta: "",
+        Status: "ativado",
+        NumeroSerie: "",
+        DataInicial: "",
+        DataFinal: "",
+        Total:"",
       },
     };
   },
