@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../config/db.js";
 
 // Função para criar uma transferência
 export const criarTransferencia = async (req, res) => {

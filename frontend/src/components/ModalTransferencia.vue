@@ -44,12 +44,14 @@ export default {
         return;
       }
 
+      const transferenciaData = {
+        maquininhaId: this.maquininhaSelecionada.numeroserie,  
+        clienteDestino: this.clienteDestino,
+        data: this.dataTransferencia,
+      };
+
       try {
-        await transferenciaService.realizarTransferencia({
-          maquininhaId: this.maquininhaSelecionada.numeroserie,  
-          clienteDestino: this.clienteDestino,
-          data: this.dataTransferencia,
-        });
+        await transferenciaService.realizarTransferencia(transferenciaData);
         alert('Transferência realizada com sucesso!');
         this.fecharModal();
       } catch (error) {

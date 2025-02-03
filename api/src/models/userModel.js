@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import connection from '../db.js';
+import connection from '../config/db.js';
 
 // Função para criar um novo usuário
 export const createUser = (userData, callback) => {

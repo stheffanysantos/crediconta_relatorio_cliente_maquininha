@@ -8,6 +8,7 @@
     <RodapePedido />
     <loginUser />
     <ImportCsv />
+    <MovementsView />
 
 
   </div>
@@ -19,6 +20,7 @@ import PlanilhaClientes from './components/PlanilhaClientes.vue';
 import RodapePedido from './components/RodapePedido.vue';
 import loginUser from './components/loginUser.vue';
 import ImportCsv from './components/ImportCsv.vue';
+import MovementsView from './components/MovementsView.vue';
 
 
 export default {
@@ -28,6 +30,7 @@ export default {
     CreditoTaxa,
     loginUser,
     ImportCsv,
+    MovementsView,
   },
 };
 </script>

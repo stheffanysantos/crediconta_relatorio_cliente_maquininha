@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../config/db.js";
 
 // Função para buscar as taxas ativas
 export const gethistoricocredito = async (req, res) => {
