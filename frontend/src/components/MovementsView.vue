@@ -13,27 +13,30 @@
       <h3>{{ clienteSelecionado.nome }}</h3>
       <p><strong>Saldo Atual:</strong> R$ {{ saldoAtual.toFixed(2) }}</p>
 
-      <!-- Tabela de Movimentações -->
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Movimento</th>
-            <th>Valor</th>
-            <th>Saldo Após</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="mov in movimentacoes" :key="mov.id">
-            <td>{{ formatarData(mov.data_movimentacao) }}</td>
-            <td :class="mov.movimento === 'entrada' ? 'entrada' : 'saida'">
-              {{ mov.movimento }}
-            </td>
-            <td>R$ {{ !isNaN(parseFloat(mov.valor_liquido)) ? parseFloat(mov.valor_liquido).toFixed(2) : '0.00' }}</td>
-            <td>R$ {{ !isNaN(parseFloat(mov.saldo_atual)) ? parseFloat(mov.saldo_atual).toFixed(2) : '0.00' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-if="movimentacoes.length > 0">
+        <!-- Tabela de Movimentações -->
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Movimento</th>
+              <th>Valor</th>
+              <th>Saldo Após</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="mov in movimentacoes" :key="mov.id">
+              <td>{{ formatarData(mov.data_movimentacao) }}</td>
+              <td :class="mov.movimento === 'entrada' ? 'entrada' : 'saida'">
+                {{ mov.movimento }}
+              </td>
+              <td>R$ {{ parseFloat(mov.valor_liquido).toFixed(2) }}</td>
+              <td>R$ {{ parseFloat(mov.saldo_atual).toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-else>Nenhuma movimentação encontrada para este cliente.</p>
 
       <button class="btn-subtrair" @click="abrirModalSaida">Subtrair Total</button>
     </div>
@@ -83,19 +86,19 @@ export default {
           return;
         }
 
-        // Chamada ao serviço para obter as movimentações
+        // Chamada ao serviço para obter as movimentações e o nome do cliente
         console.log('Chamando getMovementsByClient com ID do cliente:', clienteId);
         const data = await movementService.getMovementsByClient(clienteId);
         console.log('Dados retornados de getMovementsByClient:', data);
 
-        if (data && data.length) {
+        if (data) {
           this.clienteSelecionado = {
-            nome: data[0].cliente_nome,
-            id: data[0].cliente_id,
+            nome: data.cliente_nome, // Nome do cliente retornado do backend
+            id: clienteId,
           };
-          this.movimentacoes = data;
-          // Garantir que saldoAtual seja um número (parseFloat)
-          this.saldoAtual = parseFloat(data[0].saldo_atual) || 0;
+          this.movimentacoes = data.movimentacoes || []; // Garante que seja um array, mesmo se estiver vazio
+          this.saldoAtual = parseFloat(data.totalPorcentage) || 0; // Saldo atualizado mesmo sem movimentações
+
           console.log('Cliente selecionado:', this.clienteSelecionado);
           console.log('Movimentações:', this.movimentacoes);
           console.log('Saldo atual:', this.saldoAtual);
@@ -110,6 +113,7 @@ export default {
         alert("Erro ao buscar cliente.");
       }
     },
+
 
     // Função para abrir o modal de saída
     abrirModalSaida() {

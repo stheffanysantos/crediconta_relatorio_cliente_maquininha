@@ -34,24 +34,6 @@ const movementService = {
       throw error; // Repassa o erro para a camada superior
     }
   },
-  // Função para inserir uma nova movimentação para teste
-  async insertTestMovement() {
-    try {
-      const testMovements = [
-        { cliente_id: 3, cliente_nome: 'MARQUINHOS', valor_liquido: '1000.50', movimento: 'entrada', data_movimentacao: new Date().toISOString() },
-        { cliente_id: 3, cliente_nome: 'MARQUINHOS', valor_liquido: '500.25', movimento: 'saida', data_movimentacao: new Date().toISOString() },
-        { cliente_id: 3, cliente_nome: 'MARQUINHOS', valor_liquido: '300.75', movimento: 'entrada', data_movimentacao: new Date().toISOString() },
-        { cliente_id: 3, cliente_nome: 'MARQUINHOS', valor_liquido: '200.40', movimento: 'saida', data_movimentacao: new Date().toISOString() },
-      ];
-      for (const movement of testMovements) {
-        await api.post('/movement', movement);
-      }
-      console.log('Movimentações de teste inseridas com sucesso');
-    } catch (error) {
-      console.error('Erro ao inserir movimentações de teste:', error.response?.data || error.message);
-      throw error; // Repassa o erro para a camada superior
-    }
-  },
 };
 
 export default movementService;
