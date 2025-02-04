@@ -5,9 +5,10 @@
     </div>
     <PlanilhaClientes />
     <CreditoTaxa />
-    <RodapePedido />
     <loginUser />
     <ImportCsv />
+    <MovementsView />
+    <RodapePedido />
 
 
   </div>
@@ -16,25 +17,26 @@
 <script>
 import CreditoTaxa from './components/CreditoTaxa.vue';
 import PlanilhaClientes from './components/PlanilhaClientes.vue';
-import RodapePedido from './components/RodapePedido.vue';
 import loginUser from './components/loginUser.vue';
 import ImportCsv from './components/ImportCsv.vue';
-
+import MovementsView from './components/MovementsView.vue';
+import RodapePedido from './components/RodapePedido.vue';
 
 export default {
   components: {
     RodapePedido,
     PlanilhaClientes,
     CreditoTaxa,
-    loginUser,
     ImportCsv,
+    MovementsView,
+    loginUser,
   },
 };
 </script>
 
 <style>
 body {
-  background-color: #412884; /* Cor de fundo desejada */
+  background-color: #ffffff; /* Cor de fundo desejada */
 }
 
 .image-header {

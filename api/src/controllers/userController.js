@@ -1,7 +1,7 @@
 import { createUser, authenticateUser } from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs'; // Certifique-se de que esta linha está presente
-import connection from '../db.js';
+import connection from "../config/db.js";
 
 // Função para registrar um usuário
 export const registerUser = (req, res) => {

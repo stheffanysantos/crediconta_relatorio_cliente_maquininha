@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../config/db.js";
 
 export const criarTransferencia = (req, res) => {
   const { maquininhaId, clienteDestino, clienteOrigem, data } = req.body;
