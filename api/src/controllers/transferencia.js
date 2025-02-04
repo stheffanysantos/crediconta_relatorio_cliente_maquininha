@@ -1,57 +1,68 @@
 import db from "../config/db.js";
 
-// Função para criar uma transferência
-export const criarTransferencia = async (req, res) => {
+export const criarTransferencia = (req, res) => {
   const { maquininhaId, clienteDestino, clienteOrigem, data } = req.body;
 
-  // Validação de dados
-  if (!maquininhaId || !clienteDestino || !clienteOrigem || !data) {
-    return res.status(400).json({ error: "Dados incompletos para criar a transferência" });
-  }
-
-  const connection = await db.getConnection(); // Obter conexão para a transação
-
-  try {
-    await connection.beginTransaction();
+  db.beginTransaction((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Erro ao iniciar a transação", error: err.message });
+    }
 
     // Desativar a maquininha no cliente de origem
-    const [result1] = await connection.query(
-      "UPDATE cliente_info SET status = 'desativado' WHERE numeroserie = ? AND status = 'ativado'",
-      [maquininhaId]
-    );
-    if (result1.affectedRows === 0) {
-      throw new Error("Maquininha não encontrada ou não está ativada");
-    }
+    const q1 = "UPDATE cliente_info SET status = 'desativado' WHERE numeroserie = ? AND status = 'ativado'";
+    db.query(q1, [maquininhaId], (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          res.status(500).json({ message: "Erro ao desativar maquininha", error: err.message });
+        });
+      }
+      if (result.affectedRows === 0) {
+        return db.rollback(() => {
+          res.status(400).json({ message: "Maquininha não encontrada ou não está ativada" });
+        });
+      }
 
-    // Registrar a transferência na tabela de transferências
-    const [result2] = await connection.query(
-      "INSERT INTO transferencias (maquininha_id, cliente_origem_id, cliente_destino_id, data_transferencia) VALUES (?, ?, ?, ?)",
-      [maquininhaId, clienteOrigem, clienteDestino, data]
-    );
+      // Registrar a transferência na tabela de transferências
+      const q2 = "INSERT INTO transferencias (maquininha_id, cliente_origem_id, cliente_destino_id, data_transferencia) VALUES (?)";
+      const valuesTransferencia = [maquininhaId, clienteOrigem, clienteDestino, data];
+      db.query(q2, [valuesTransferencia], (err, result) => {
+        if (err) {
+          return db.rollback(() => {
+            res.status(500).json({ message: "Erro ao registrar a transferência", error: err.message });
+          });
+        }
 
-    // Atualizar o status da maquininha no cliente de destino
-    const [result3] = await connection.query(
-      "UPDATE cliente_info SET status = 'ativado' WHERE id = ?",
-      [clienteDestino]
-    );
-    if (result3.affectedRows === 0) {
-      throw new Error("Erro ao atualizar o status do cliente de destino");
-    }
+        // Registrar no histórico de clientes
+        const qHistorico = "INSERT INTO historico_maquininhas (maquininha_id, cliente_id, data_transferencia) VALUES (?)";
+        const valuesHistorico = [maquininhaId, clienteOrigem, data];
+        db.query(qHistorico, [valuesHistorico], (err, result) => {
+          if (err) {
+            return db.rollback(() => {
+              res.status(500).json({ message: "Erro ao salvar histórico", error: err.message });
+            });
+          }
 
-    // Registrar no histórico de clientes
-    await connection.query(
-      "INSERT INTO historico_maquininhas (maquininha_id, cliente_id, data_transferencia) VALUES (?, ?, ?)",
-      [maquininhaId, clienteOrigem, data]
-    );
+          // Atualizar o status da maquininha no cliente de destino
+          const q3 = "UPDATE cliente_info SET status = 'ativado' WHERE id = ?";
+          db.query(q3, [clienteDestino], (err, result) => {
+            if (err) {
+              return db.rollback(() => {
+                res.status(500).json({ message: "Erro ao atualizar cliente de destino", error: err.message });
+              });
+            }
 
-    // Commit da transação
-    await connection.commit();
-    res.status(200).json({ message: "Transferência realizada com sucesso e histórico atualizado" });
-  } catch (error) {
-    await connection.rollback();
-    console.error("Erro ao realizar transferência:", error.message);
-    res.status(500).json({ error: "Erro ao realizar a transferência", details: error.message });
-  } finally {
-    connection.release(); // Liberar a conexão
-  }
+            db.commit((err) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ message: "Erro ao realizar o commit", error: err.message });
+                });
+              }
+
+              res.status(200).json({ message: "Transferência realizada com sucesso e histórico atualizado" });
+            });
+          });
+        });
+      });
+    });
+  });
 };
