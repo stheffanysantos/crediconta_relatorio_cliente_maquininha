@@ -31,6 +31,7 @@ app.use("/api/transferencis", transferenciasRoutes);
 app.use("/api/creditotaxa", creditotaxaRoutes);
 app.use("/api/users", userRoutes);
 console.log("Rotas configuradas.");
+console.log('teste')
 
 // Middleware para rotas não encontradas
 app.use((req, res) => {
