@@ -60,7 +60,7 @@
               <td>{{ taxa.rate_id }}</td>
               <td>{{ taxa.tipo }}</td>
               <td>{{ taxa.bandeira }}</td>
-              <td>{{ taxa.percentage }}%</td>
+              <td>{{ (taxa.percentage * 100).toFixed(2) }}%</td>
               <td>{{ taxa.active ? "Sim" : "Não" }}</td>
               <td>
                 <button @click="excluirTaxa(index)" class="btn btn-delete">Excluir</button>

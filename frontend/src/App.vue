@@ -1,48 +1,67 @@
 <template>
-  <div id="app">
-    <div class="image-header">
-      <img src="@/assets/dubyicon.png" alt="Minha Imagem" />
+  <div id="app" class="app-layout">
+    <MenuModal />
+
+    <div class="content">
+      <!-- Aqui será renderizado o componente baseado na rota atual -->
+      <router-view />
     </div>
-    <PlanilhaClientes />
-    <CreditoTaxa />
-    <loginUser />
-    <ImportCsv />
-    <MovementsView />
+
     <RodapePedido />
-
-
   </div>
 </template>
 
 <script>
-import CreditoTaxa from './components/CreditoTaxa.vue';
-import PlanilhaClientes from './components/PlanilhaClientes.vue';
-import loginUser from './components/loginUser.vue';
-import ImportCsv from './components/ImportCsv.vue';
-import MovementsView from './components/MovementsView.vue';
+import MenuModal from './components/MenuModal.vue';
 import RodapePedido from './components/RodapePedido.vue';
 
 export default {
+  name: 'App',
   components: {
+    MenuModal,
     RodapePedido,
-    PlanilhaClientes,
-    CreditoTaxa,
-    ImportCsv,
-    MovementsView,
-    loginUser,
   },
 };
 </script>
 
 <style>
 body {
-  background-color: #ffffff; /* Cor de fundo desejada */
+  display: initial;
+    min-height: 100vh;
+    background-color: #e3e9f7;
 }
 
-.image-header {
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+#app {
   display: flex;
-  justify-content: flex-end; /* Move para a direita */
-  align-items: flex-end; /* Mantém alinhado na parte inferior */
-  height: 100%; /* Certifique-se de que o contêiner ocupe toda a altura */
+  flex-direction: column;
+  min-height: 100vh; /* Garante que ocupe toda a altura da tela */
+}
+
+.content {
+  display: flex;
+  flex: 1; /* Faz o conteúdo ocupar o espaço disponível */
+  padding: 20px;
+  margin-left: 82px; /* Espaço para o MenuModal */
+  background-color: #f4f7fb;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+  z-index: 1;
+}
+
+footer {
+  background-color: #412884;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
 }
 </style>

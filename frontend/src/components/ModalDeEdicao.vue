@@ -4,38 +4,63 @@
       <h2>Editar Cliente</h2>
       <form @submit.prevent="salvarClienteEditado">
         <div class="form-group-container">
-
+          <!-- Campo Cliente (apenas visualização) -->
           <div class="form-group">
             <label for="cliente">Cliente:</label>
-            <input type="text" id="cliente" v-model="clienteTemp.cliente" required />
+            <input
+              type="text"
+              id="cliente"
+              v-model="clienteTemp.Cliente"
+              required
+              readonly
+            />
           </div>
 
+          <!-- Campo Status -->
           <div class="form-group">
             <label for="status">Status:</label>
-            <select id="status" v-model="clienteTemp.status" required>
-              <option value="ativado">Ativado</option>
-              <option value="desativado">Desativado</option>
+            <select id="status" v-model="clienteTemp.Status">
+              <option value="Ativo">Ativo</option>
+              <option value="Desativado">Desativado</option>
             </select>
           </div>
 
+
+          <!-- Campo Número de Série -->
           <div class="form-group">
             <label for="numeroserie">Número de Série:</label>
             <div class="input-with-button">
-              <input type="text" id="numeroserie" v-model="clienteTemp.numeroserie" required />
-              <button type="button" @click="abrirCadastroMaquininhas" class="btn-icon">+</button>
+              <input
+                type="text"
+                id="numeroserie"
+                v-model="clienteTemp.numeroserie"
+                required
+              />
+              <button type="button" @click="showModalMaquininhas = true" class="btn-icon">+</button>
             </div>
           </div>
 
+          <!-- Campo Data Inicial (apenas visualização) -->
           <div class="form-group">
             <label for="datainicial">Data Inicial:</label>
-            <input type="date" id="datainicial" v-model="clienteTemp.datainicial" required />
+            <input
+              type="date"
+              id="datainicial"
+              v-model="clienteTemp.datainicial"
+              required
+              readonly
+            />
           </div>
 
+          <!-- Campo Data Final -->
           <div class="form-group">
             <label for="datafinal">Data Final:</label>
-            <input type="date" id="datafinal" v-model="clienteTemp.datafinal" required />
+            <input type="date" id="datafinal" v-model="clienteTemp.datafinal" />
           </div>
         </div>
+
+        <!-- Modal de Cadastro de Maquininhas -->
+        <ModalMaquininha v-if="showModalMaquininhas" @salvarMaquininhas="atualizarNumeroSerie" @close="showModalMaquininhas = false" />
 
         <button type="submit" class="btn">Salvar</button>
       </form>
@@ -46,9 +71,14 @@
 </template>
 
 <script>
+import Swal from "sweetalert2";
 import clienteService from "@/services/clienteService";
+import ModalMaquininha from "./ModalMaquininhas.vue"; // Importa o modal de maquininhas
 
 export default {
+  components: {
+    ModalMaquininha,
+  },
   props: {
     isVisible: {
       type: Boolean,
@@ -61,7 +91,11 @@ export default {
   },
   data() {
     return {
-      clienteTemp: {}, 
+      showEditModal: false,
+      showModalMaquininhas: false, // Controla a exibição do modal de maquininhas
+      clienteTemp: {
+        numeroserie: "",
+      },
     };
   },
   watch: {
@@ -69,40 +103,82 @@ export default {
       handler(newCliente) {
         if (newCliente) {
           this.clienteTemp = {
-            ...newCliente, // Atualiza clienteTemp com o clienteEditado
-            datainicial: newCliente.datainicial || "",
-            datafinal: newCliente.datafinal || "",
+            ...newCliente,
+            datainicial: newCliente.datainicial
+              ? newCliente.datainicial.split("T")[0]
+              : "",
+            datafinal: newCliente.datafinal
+              ? newCliente.datafinal.split("T")[0]
+              : "",
           };
         }
       },
+      immediate: true,
       deep: true,
     },
   },
   methods: {
+    // Método para abrir o modal de maquininhas
+    abrirModalMaquininhas() {
+      this.showModalMaquininhas = true;
+    },
+
+    // Método para atualizar o número de série quando salvar no modal de maquininhas
+    atualizarNumeroSerie(maquininhas) {
+      if (maquininhas.length > 0) {
+        this.clienteTemp.numeroserie = maquininhas.map(m => m.numeroSerie).join(", ");
+      }
+      this.showModalMaquininhas = false;
+    },
+
+    // Método de salvar cliente editado
     async salvarClienteEditado() {
       try {
-        const clienteEnviado = {
-          ...this.clienteTemp,
-        };
+        const statusAnterior = this.clienteEditado.Status;
+        const novoStatus = this.clienteTemp.Status;
 
+        // Verifica se o status mudou de "Ativo" para "Desativado"
+        if (statusAnterior === "Ativo" && novoStatus === "Desativado") {
+          const confirmacao = await Swal.fire({
+            title: "Tem certeza?",
+            text: "Você realmente deseja desativar este cliente?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Sim, desativar!",
+            cancelButtonText: "Cancelar",
+          });
+
+          // Se o usuário cancelar, reverte o status e interrompe o salvamento
+          if (!confirmacao.isConfirmed) {
+            this.clienteTemp.Status = statusAnterior;
+            return;
+          }
+        }
+
+        // Continua o salvamento se não houver bloqueios
+        const clienteEnviado = { ...this.clienteTemp };
         const response = await clienteService.updateCliente(clienteEnviado.id, clienteEnviado);
+
         if (response) {
           this.$emit("atualizarClientes");
-          this.fecharModal();
+
+          // Pequeno atraso para garantir o fluxo antes de exibir o alerta de sucesso
+          setTimeout(() => {
+            Swal.fire("Sucesso!", "As alterações foram salvas.", "success");
+          }, 300);
         } else {
-          alert("Erro ao atualizar cliente.");
+          Swal.fire("Erro!", "Erro ao atualizar cliente.", "error");
         }
       } catch (error) {
         console.error("Erro ao salvar cliente editado:", error);
-        alert("Não foi possível salvar as alterações. Tente novamente.");
+        Swal.fire("Erro!", "Não foi possível salvar as alterações. Tente novamente.", "error");
       }
     },
 
-    abrirCadastroMaquininhas() {
-      // Emite um evento para o componente pai abrir o modal de cadastro de maquininhas
-      this.$emit("abrirCadastroMaquininhas");
-    },
-
+    
+    // Fechar o modal
     fecharModal() {
       this.$emit("fechar");
     },

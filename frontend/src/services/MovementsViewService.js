@@ -34,6 +34,18 @@ const movementService = {
       throw error; // Repassa o erro para a camada superior
     }
   },
+
+  // Função para buscar os últimos 6 clientes modificados
+  async getLastModifiedClients() {
+    try {
+      const response = await api.get('/movement'); // Rota que busca os últimos 6 clientes modificados
+      console.log('Resposta dos últimos clientes modificados:', response.data);
+      return response.data; // Retorna os dados dos últimos clientes modificados
+    } catch (error) {
+      console.error('Erro ao buscar os últimos clientes modificados:', error.response?.data || error.message);
+      throw error; // Repassa o erro para a camada superior
+    }
+  },
 };
 
 export default movementService;

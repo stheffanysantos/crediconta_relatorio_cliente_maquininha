@@ -1,7 +1,7 @@
 import db from "../config/db.js";
 
 export const criarTransferencia = (req, res) => {
-  const { maquininhaId, clienteDestino, clienteOrigem, data } = req.body;
+  const { maquininhzaId, clienteDestino, clienteOrigem, data } = req.body;
 
   db.beginTransaction((err) => {
     if (err) {

@@ -22,8 +22,8 @@
   @import url(https://fonts.googleapis.com/css?family=Nunito:200,300,regular,500,600,700,800,900,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic);
   
   .footer {
-    background-color: #412884;
-    color: white;
+    background-color: #ecf0f7;
+    color: #412884;
     padding: 20px;
     text-align: center;
     font-size: 1rem;
@@ -34,7 +34,7 @@
   }
   
   .footer-content a {
-    color: white;  
+    color: #412884;  
     text-decoration: none;
   }
   

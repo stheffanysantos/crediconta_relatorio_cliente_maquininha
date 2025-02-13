@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 
 // Configuração das rotas
 app.use("/api/cadastrocliente", cadastroclienteRoutes);
-app.use("/api/transferencias", transferenciasRoutes);
+app.use("/api/transferencia", transferenciasRoutes);
 app.use("/api/creditotaxa", creditotaxaRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movement", movementRoutes);

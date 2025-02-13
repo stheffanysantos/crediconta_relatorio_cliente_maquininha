@@ -15,13 +15,11 @@ export const gethistoricocredito = async (req, res) => {
 export const addhistoricocredito = async (req, res) => {
   const { tipo, bandeira, percentage, active } = req.body;
 
-  // Validação de dados
   if (!tipo || !bandeira || percentage === undefined) {
     return res.status(400).json({ error: "Tipo, bandeira e porcentagem são obrigatórios" });
   }
 
   try {
-    // Verifica se já existe uma taxa ativa para a mesma bandeira e tipo
     const [existing] = await db.query(
       "SELECT * FROM historicocredito WHERE bandeira = ? AND tipo = ? AND active = ?",
       [bandeira, tipo, true]
@@ -31,10 +29,14 @@ export const addhistoricocredito = async (req, res) => {
       return res.status(400).json({ error: `Já existe uma taxa ativa para a bandeira ${bandeira} e tipo ${tipo}` });
     }
 
+    // 🚩 Conversão da porcentagem (5 -> 0.05)
+    const convertedPercentage = percentage / 100;
+
     const [result] = await db.query(
       "INSERT INTO historicocredito (tipo, bandeira, percentage, active, created_at) VALUES (?, ?, ?, ?, NOW())",
-      [tipo, bandeira, percentage, active ?? true]
+      [tipo, bandeira, convertedPercentage, active ?? true]
     );
+
     res.status(201).json({ id: result.insertId });
   } catch (error) {
     console.error("Erro ao adicionar a taxa:", error);
@@ -44,19 +46,20 @@ export const addhistoricocredito = async (req, res) => {
 
 // Função para atualizar uma taxa
 export const updatehistoricocredito = async (req, res) => {
-  const { id } = req.params; // Captura o parâmetro :id da URL
+  const { id } = req.params;
   const { tipo, percentage, active } = req.body;
 
-  // Verificação de dados obrigatórios
-  if (!tipo || !percentage || active === undefined) {
+  if (!tipo || percentage === undefined || active === undefined) {
     return res.status(400).json({ error: "Dados incompletos para atualização" });
   }
 
   try {
-    // Atualiza a taxa no banco
+    // 🚩 Conversão da porcentagem (5 -> 0.05)
+    const convertedPercentage = percentage / 100;
+
     const [result] = await db.query(
       "UPDATE historicocredito SET tipo = ?, percentage = ?, active = ? WHERE rate_id = ?",
-      [tipo, percentage, active, id]
+      [tipo, convertedPercentage, active, id]
     );
 
     if (result.affectedRows === 0) {

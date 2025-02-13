@@ -42,6 +42,18 @@ const clienteService = {
       throw error;
     }
   },
+
+
+async deactivateCliente(id) {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/${id}`, { Status: "Desativado" });
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao desativar cliente:", error.response?.data || error.message);
+    throw error;
+  }
+}
+
 };
 
 export default clienteService;
