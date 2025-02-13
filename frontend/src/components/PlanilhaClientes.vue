@@ -9,19 +9,19 @@
         <form @submit.prevent="addCliente">
           <div class="form-group">
             <label for="cliente">Cliente:</label>
-            <input type="text" id="cliente" v-model="novoCliente.cliente" required />
+            <input type="text" id="cliente" v-model="novoCliente.Cliente" required />
           </div>
           <div class="form-group">
             <label for="maquineta">Maquineta:</label>
-              <select id="maquineta" v-model="novoCliente.maquineta" required>
-                <option value="stone">Stone</option>
+              <select id="maquineta" v-model="novoCliente.Maquineta" required>
+                <option value="Stone">Stone</option>
               </select>
           </div>
           <div class="form-group">
             <label for="status">Status:</label>
-            <select id="status" v-model="novoCliente.status" required>
-              <option value="ativado">Ativo</option>
-              <option value="desativado">Desativado</option>
+            <select id="status" v-model="novoCliente.Status" required>
+              <option value="Ativo">Ativo</option>
+              <option value="Desativado">Desativado</option>
             </select>
           </div>
           <div class="form-group">
@@ -32,10 +32,12 @@
             <label for="datainicial">Data Inicial:</label>
             <input type="date" id="datainicial" v-model="novoCliente.datainicial" required />
           </div>
+          <!--
           <div class="form-group">
             <label for="datafinal">Data Final:</label>
-            <input type="date" id="datafinal" v-model="novoCliente.datafinal" required />
+            <input type="date" id="datafinal" v-model="novoCliente.datafinal" />
           </div>
+          -->
           <button type="submit" class="btn">Cadastrar</button>
         </form>
       </div>
@@ -51,28 +53,26 @@
               <th>Status</th>
               <th>Número de Série</th>
               <th>Data Inicial</th>
-              <th>Data Final</th>
+              <!--<th>Data Final</th>-->
               <th>Total</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(cliente, index) in clientes" :key="cliente.id">
+            <tr v-for="(cliente) in clientes.filter(c => c.Status === 'Ativo')" :key="cliente.id">
               <td>{{ cliente.id }}</td>
               <td>{{ cliente.Cliente }}</td>
               <td>{{ cliente.Maquineta }}</td>
               <td>{{ cliente.Status }}</td>
-              <td>{{ cliente.NumeroSerie }}</td>
-              <td>{{ formatarData(cliente.DataInicial) }}</td>
-              <td>{{ formatarData(cliente.DataFinal) }}</td>
-              <td>{{ cliente.Total }}</td>
+              <td>{{ cliente.numeroserie }}</td>
+              <td>{{ formatarData(cliente.datainicial) }}</td>
+              <!--<td>{{ formatarData(cliente.DataFinal) }}</td>-->
+              <td>{{ cliente.TotalPorcentage }}</td>
               <td>
-                <button @click="editarCliente(index)" class="btn btn-edit">
+                <button @click="editarCliente(cliente)" class="btn btn-edit">
                   <img src="@/assets/lapis.png" alt="Editar" class="icon-img">
                 </button>
-                <button @click="excluirCliente(index)" class="btn btn-delete">
-                  <img src="@/assets/lixeira.png" alt="Editar" class="icon-img">
-                </button>
+
                 <button @click="abrirTransferModal(cliente)">
                   <img src="@/assets/transferir.png" alt="Editar" class="icon-img">
                 </button>
@@ -89,7 +89,7 @@
       :isVisible="isEditing"
       :clienteEditado="clienteEditado"
       @fechar="fecharModal"
-      @salvar="salvarClienteEditado"
+      @salvarClienteEditado="salvarClienteEditado" 
     />
 
     <modal-transferencia
@@ -126,11 +126,11 @@ export default {
       novoCliente: {
         Cliente: "",
         Maquineta: "",
-        Status: "ativado",
-        NumeroSerie: "",
-        DataInicial: "",
+        Status: "Ativo",
+        numeroserie: "",
+        datainicial: "",
         DataFinal: "",
-        Total:"",
+        TotalPorcentage:"",
       },
     };
   },
@@ -148,7 +148,7 @@ export default {
     async addCliente() {
       try {
         const existeMaquininhaAtiva = this.clientes.find(cliente => 
-          cliente.numeroserie === this.novoCliente.numeroserie && cliente.status === 'ativado'
+          cliente.numeroserie === this.novoCliente.numeroserie && cliente.Status.toLowerCase() === 'Ativo'
         );
 
         if (existeMaquininhaAtiva) {
@@ -157,7 +157,7 @@ export default {
             return;
           } else {
           
-            await clienteService.updateCliente(existeMaquininhaAtiva.id, { status: 'desativado' });
+            await clienteService.updateCliente(existeMaquininhaAtiva.id, { Status: 'desativado' });
           }
         }
 
@@ -179,37 +179,24 @@ export default {
 
     async salvarClienteEditado(clienteAtualizado) {
       try {
-        const existeMaquininhaAtiva = this.clientes.find(cliente => 
-          cliente.numeroserie === clienteAtualizado.numeroserie && cliente.status === 'ativado' && cliente.id !== clienteAtualizado.id
-        );
-
-        if (existeMaquininhaAtiva) {
-          const confirmarTransferencia = confirm(`A maquininha ${clienteAtualizado.numeroserie} já está ativada em outro cliente. Deseja transferi-la para este cliente?`);
-          if (!confirmarTransferencia) {
-            return;
-          } else {
-
-            await clienteService.updateCliente(existeMaquininhaAtiva.id, { status: 'desativado' });
-          }
-        }
-
+        // Lógica de verificação (maquininha, status, etc.) e atualização via API
         const response = await clienteService.updateCliente(clienteAtualizado.id, clienteAtualizado);
         console.log("Resposta da API ao atualizar cliente:", response);
 
+        // Atualiza a lista local de clientes
         const index = this.clientes.findIndex((c) => c.id === clienteAtualizado.id);
         if (index !== -1) {
           this.clientes.splice(index, 1, { ...clienteAtualizado, ...response });
-          this.fecharModal();
-          this.getClientes(); 
-        } else {
-          console.error("Cliente a ser editado não encontrado:", clienteAtualizado);
-          alert("Erro ao salvar cliente editado. Cliente não encontrado.");
         }
+
+        this.fecharModal(); // Fecha o modal após a atualização
+        Swal.fire("Sucesso!", "Cliente atualizado com sucesso.", "success");
       } catch (error) {
-        console.error("Erro ao salvar cliente editado:", error.response?.data || error.message);
-        alert("Erro ao salvar cliente editado. Verifique os logs para mais detalhes.");
+        console.error("Erro ao salvar cliente editado:", error);
+        Swal.fire("Erro!", "Erro ao salvar cliente editado. Tente novamente.", "error");
       }
     },
+
 
     async excluirCliente(index) {
       const { isConfirmed } = await Swal.fire({
@@ -249,17 +236,18 @@ export default {
     resetForm() {
       this.novoCliente = {
         cliente: "",
-        status: "ativado",
+        status: "Ativo",
         numeroserie: "",
         datainicial: "",
         datafinal: "",
       };
     },
 
-    editarCliente(index) {
-      this.clienteEditado = { ...this.clientes[index] };
+    editarCliente(cliente) {
+      this.clienteEditado = JSON.parse(JSON.stringify(cliente)); // Clonagem profunda para evitar efeitos colaterais
       this.isEditing = true;
     },
+
 
     fecharModal() {
       this.isEditing = false;
@@ -319,7 +307,7 @@ export default {
     max-width: 90%; 
     background: #f4f7fb;
     border-radius: 10px;
-    padding: 20px;
+    padding: 30px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   }
@@ -335,13 +323,13 @@ export default {
     background: #ffffff;
     border: 1px solid #ddd;
     border-radius: 10px;
-    padding: 20px; 
+    padding: 10px; 
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .form-container {
     margin-right: 20px;
-    padding: 30px;
+    padding: 20px;
     align-items: center;
     background-color: #ffffff;
   }

@@ -15,15 +15,13 @@ export const getCliente = async (_, res) => {
 
 // Função para adicionar cliente
 export const addCliente = async (req, res) => {
-  const q = "INSERT INTO movements (`Cliente`, `Maquineta`, `Status`, `numeroserie`, `DataInicial`, `DataFinal`, `TotalPorcentage` VALUES (?)";
+  const q = "INSERT INTO movements (`Cliente`, `Maquineta`, `Status`, `numeroserie`, `datainicial`) VALUES (?)";
   const values = [
     req.body.Cliente,
     req.body.Maquineta,
     req.body.Status,
-    req.body.NumeroSerie,
-    req.body.DataInicial,
-    req.body.DataFinal,
-    req.body.TotalPorcentage,
+    req.body.numeroserie,
+    req.body.datainicial,
   ];
 
   try {
@@ -41,14 +39,14 @@ export const addCliente = async (req, res) => {
 
 // Função para atualizar cliente
 export const updateCliente = async (req, res) => {
-  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?, `DataInicial` = ?, `DataFinal` = ?, `TotalPorcentage` = ? WHERE `id` = ?";
+  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?, `datainicial` = ?, `DataFinal` = ?, `TotalPorcentage` = ? WHERE `id` = ?";
   
   const values = [
     req.body.Cliente,
     req.body.Maquineta,
     req.body.Status,
-    req.body.NumeroSerie,
-    req.body.DataInicial,
+    req.body.numeroserie,
+    req.body.datainicial,
     req.body.DataFinal,
     req.body.TotalPorcentage,
   ];
@@ -82,6 +80,24 @@ export const deleteCliente = async (req, res) => {
   } catch (err) {
     console.error('Erro ao deletar cliente:', err.message); // Erro detalhado
     return res.status(500).json({ message: "Erro ao deletar cliente", error: err.message });
+  }
+};
+
+// Função para desativar cliente
+export const deactivateCliente = async (req, res) => {
+  const q = "UPDATE movements SET `Status` = 'Desativado' WHERE `id` = ?";
+
+  try {
+    const [result] = await db.query(q, [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Cliente não encontrado" });
+    }
+
+    return res.status(200).json({ message: "Cliente desativado com sucesso." });
+  } catch (err) {
+    console.error('Erro ao desativar cliente:', err.message);
+    return res.status(500).json({ message: "Erro ao desativar cliente", error: err.message });
   }
 };
 
