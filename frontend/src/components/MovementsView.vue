@@ -55,9 +55,18 @@
             <span class="close" @click="mostrarModalEntrada = false">&times;</span>
             <h3>Adicionar Entrada</h3>
             <input v-model="valorEntrada" type="number" placeholder="Valor da entrada" />
+            <div class="opcoes-pagamento">
+              <label>
+                <input type="radio" v-model="tipoEntrada" value="Pix" />Pix
+              </label>
+              <label>
+                <input type="radio" v-model="tipoEntrada" value="Crédito" />Crédito
+              </label>
+            </div>
             <button class="btn-confirm" @click="realizarEntrada">Adicionar</button>
           </div>
         </div>
+
 
         <!-- Modal de Saída -->
         <div v-if="mostrarModalSaida" class="modal-overlay">
@@ -109,37 +118,41 @@ import Swal from 'sweetalert2';
 export default {
   data() {
     return {
-      searchQuery: '',
+      tipoBusca: 'id', // Define o tipo de busca (padrão por ID)
+      searchQueryId: '',
+      searchQueryNome: '',
       clienteSelecionado: null,
       movimentacoes: [],
       saldoAtual: 0,
       mostrarModalEntrada: false,
       mostrarModalSaida: false,
-      valorEntrada: 0,
-      valorSaida: 0,
+      valorEntrada: null,
+      tipoEntrada: 'Pix',
+      valorSaida: null,
       prevenda: '',
       ultimoClientes: [],
     };
   },
   methods: {
     async buscarCliente() {
-      if (!this.searchQuery) return;
-      try {
-        const clienteId = parseInt(this.searchQuery);
-        if (isNaN(clienteId)) {
-          alert("O ID do cliente deve ser um número válido.");
-          return;
+        if (!this.searchQuery) return;
+        try {
+          const clienteId = parseInt(this.searchQuery); // Use o ID do cliente conforme esperado no backend
+          if (isNaN(clienteId)) {
+            alert("O ID do cliente deve ser um número válido.");
+            return;
+          }
+
+          const data = await movementService.getMovementsByClient(clienteId);  // Enviar o idZeus para a requisição
+          if (data) {
+            this.clienteSelecionado = { nome: data.cliente_nome, id: clienteId };
+            this.movimentacoes = data.movimentacoes || [];
+            this.saldoAtual = parseFloat(data.totalPorcentage) || 0;
+          }
+        } catch (error) {
+          console.error('Erro ao buscar cliente:', error);
         }
-        const data = await movementService.getMovementsByClient(clienteId);
-        if (data) {
-          this.clienteSelecionado = { nome: data.cliente_nome, id: clienteId };
-          this.movimentacoes = data.movimentacoes || [];
-          this.saldoAtual = parseFloat(data.totalPorcentage) || 0;
-        }
-      } catch (error) {
-        console.error('Erro ao buscar cliente:', error);
-      }
-    },
+      },
 
     async buscarUltimosClientes() {
       try {
@@ -450,4 +463,25 @@ button:hover {
 .btn-confirm:hover {
   background-color: #0056b3;
 }
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-options {
+  display: flex;
+  gap: 15px;
+  font-weight: bold;
+}
+
+.search-options label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 </style>

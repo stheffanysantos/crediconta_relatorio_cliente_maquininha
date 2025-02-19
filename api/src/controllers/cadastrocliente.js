@@ -15,12 +15,14 @@ export const getCliente = async (_, res) => {
 
 // Função para adicionar cliente
 export const addCliente = async (req, res) => {
-  const q = "INSERT INTO movements (`Cliente`, `Maquineta`, `Status`, `numeroserie`, `datainicial`) VALUES (?)";
+  const q = "INSERT INTO movements (`idzeus`,`Cliente`, `Maquineta`, `Status`, `numeroserie`,`numeroserie2`, `datainicial`) VALUES (?)";
   const values = [
+    req.body.idzeus,
     req.body.Cliente,
     req.body.Maquineta,
     req.body.Status,
     req.body.numeroserie,
+    req.body.numeroserie2,
     req.body.datainicial,
   ];
 
@@ -39,20 +41,22 @@ export const addCliente = async (req, res) => {
 
 // Função para atualizar cliente
 export const updateCliente = async (req, res) => {
-  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?, `datainicial` = ?, `DataFinal` = ?, `TotalPorcentage` = ? WHERE `id` = ?";
+  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?,`numeroserie2` = ?, `datainicial` = ?, `DataFinal` = ?, `TotalPorcentage` = ? WHERE `idzeus` = ?";
   
   const values = [
     req.body.Cliente,
     req.body.Maquineta,
     req.body.Status,
     req.body.numeroserie,
+    req.body.numeroserie2,
     req.body.datainicial,
     req.body.DataFinal,
     req.body.TotalPorcentage,
+    req.body.idzeus,
   ];
 
   try {
-    const [result] = await db.query(q, [...values, req.params.id]);
+    const [result] = await db.query(q, [...values, req.params.idzeus]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Cliente não encontrado" }); // Caso o cliente não seja encontrado
@@ -67,7 +71,7 @@ export const updateCliente = async (req, res) => {
 
 // Função para deletar cliente
 export const deleteCliente = async (req, res) => {
-  const q = "DELETE FROM movements WHERE `id` = ?";
+  const q = "DELETE FROM movements WHERE `idzeus` = ?";
 
   try {
     const [result] = await db.query(q, [req.params.id]);
@@ -85,7 +89,7 @@ export const deleteCliente = async (req, res) => {
 
 // Função para desativar cliente
 export const deactivateCliente = async (req, res) => {
-  const q = "UPDATE movements SET `Status` = 'Desativado' WHERE `id` = ?";
+  const q = "UPDATE movements SET `Status` = 'Desativado' WHERE `idzeus` = ?";
 
   try {
     const [result] = await db.query(q, [req.params.id]);

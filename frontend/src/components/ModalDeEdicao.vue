@@ -7,13 +7,7 @@
           <!-- Campo Cliente (apenas visualização) -->
           <div class="form-group">
             <label for="cliente">Cliente:</label>
-            <input
-              type="text"
-              id="cliente"
-              v-model="clienteTemp.Cliente"
-              required
-              readonly
-            />
+            <input type="text" id="cliente" v-model="clienteTemp.Cliente" required readonly />
           </div>
 
           <!-- Campo Status -->
@@ -25,31 +19,20 @@
             </select>
           </div>
 
-
           <!-- Campo Número de Série -->
           <div class="form-group">
             <label for="numeroserie">Número de Série:</label>
             <div class="input-with-button">
-              <input
-                type="text"
-                id="numeroserie"
-                v-model="clienteTemp.numeroserie"
-                required
-              />
-              <button type="button" @click="showModalMaquininhas = true" class="btn-icon">+</button>
+              <input type="text" id="numeroserie" v-model="clienteTemp.numeroserie" readonly />
+              <button type="button" @click="abrirModalMaquininhas" class="btn-icon">+</button>
             </div>
           </div>
+
 
           <!-- Campo Data Inicial (apenas visualização) -->
           <div class="form-group">
             <label for="datainicial">Data Inicial:</label>
-            <input
-              type="date"
-              id="datainicial"
-              v-model="clienteTemp.datainicial"
-              required
-              readonly
-            />
+            <input type="date" id="datainicial" v-model="clienteTemp.datainicial" required readonly />
           </div>
 
           <!-- Campo Data Final -->
@@ -59,13 +42,34 @@
           </div>
         </div>
 
-        <!-- Modal de Cadastro de Maquininhas -->
-        <ModalMaquininha v-if="showModalMaquininhas" @salvarMaquininhas="atualizarNumeroSerie" @close="showModalMaquininhas = false" />
-
         <button type="submit" class="btn">Salvar</button>
       </form>
 
       <button @click="fecharModal" class="btn btn-close">Fechar</button>
+    </div>
+
+  <!-- Modal de Cadastro de Maquininhas (Interno) -->
+  <div v-if="showModalMaquininhas" class="sub-modal">
+    <div class="sub-modal-content">
+      <h3>Adicionar Maquininha</h3>
+      <div class="maquininha-list">
+        <!-- Primeira maquininha (não pode ser removida) -->
+        <div class="maquininha-item">
+          <input type="text" v-model="maquininhas[0]" placeholder="Número de Série" readonly />
+        </div>
+
+        <!-- Segunda maquininha (pode ser removida) -->
+        <div v-if="maquininhas.length > 1" class="maquininha-item">
+          <input type="text" v-model="maquininhas[1]" placeholder="Número de Série" />
+          <button @click="removerSegundaMaquininha" class="btn-remove">X</button>
+        </div>
+      </div>
+      
+        <button @click="addMaquininha" class="btn btn-add">Adicionar</button>
+        <button @click="salvarMaquininhas" class="btn btn-save">Salvar</button>
+
+        
+      </div>
     </div>
   </div>
 </template>
@@ -73,12 +77,8 @@
 <script>
 import Swal from "sweetalert2";
 import clienteService from "@/services/clienteService";
-import ModalMaquininha from "./ModalMaquininhas.vue"; // Importa o modal de maquininhas
 
 export default {
-  components: {
-    ModalMaquininha,
-  },
   props: {
     isVisible: {
       type: Boolean,
@@ -91,10 +91,13 @@ export default {
   },
   data() {
     return {
-      showEditModal: false,
-      showModalMaquininhas: false, // Controla a exibição do modal de maquininhas
+      showModalMaquininhas: false,
+      maquininhas: [""],
       clienteTemp: {
         numeroserie: "",
+        numeroserie2: "",
+        datainicial: "",
+        datafinal: "",
       },
     };
   },
@@ -104,13 +107,10 @@ export default {
         if (newCliente) {
           this.clienteTemp = {
             ...newCliente,
-            datainicial: newCliente.datainicial
-              ? newCliente.datainicial.split("T")[0]
-              : "",
-            datafinal: newCliente.datafinal
-              ? newCliente.datafinal.split("T")[0]
-              : "",
+            datainicial: newCliente.datainicial ? newCliente.datainicial.split("T")[0] : "",
+            datafinal: newCliente.datafinal ? newCliente.datafinal.split("T")[0] : "",
           };
+          this.maquininhas = newCliente.numeroserie ? newCliente.numeroserie.split(", ") : [];
         }
       },
       immediate: true,
@@ -118,67 +118,52 @@ export default {
     },
   },
   methods: {
-    // Método para abrir o modal de maquininhas
     abrirModalMaquininhas() {
+      // Carrega as maquininhas do cliente para edição
+      this.maquininhas = [this.clienteTemp.numeroserie, this.clienteTemp.numeroserie2].filter(Boolean);
       this.showModalMaquininhas = true;
     },
 
-    // Método para atualizar o número de série quando salvar no modal de maquininhas
-    atualizarNumeroSerie(maquininhas) {
-      if (maquininhas.length > 0) {
-        this.clienteTemp.numeroserie = maquininhas.map(m => m.numeroSerie).join(", ");
+    addMaquininha() {
+      if (this.maquininhas.length < 2) {
+        this.maquininhas.push("");
       }
+    },
+
+    removerSegundaMaquininha() {
+      if (this.maquininhas.length > 1) {
+        this.maquininhas.pop();
+      }
+    },
+
+    salvarMaquininhas() {
+      // Define os valores das maquininhas no clienteTemp
+      this.clienteTemp.numeroserie = this.maquininhas[0] || "";
+      this.clienteTemp.numeroserie2 = this.maquininhas[1] || "";
       this.showModalMaquininhas = false;
     },
 
-    // Método de salvar cliente editado
+
+    formatarNumerosSerie() {
+      return this.maquininhas.join(", ");
+    },
+
     async salvarClienteEditado() {
       try {
-        const statusAnterior = this.clienteEditado.Status;
-        const novoStatus = this.clienteTemp.Status;
-
-        // Verifica se o status mudou de "Ativo" para "Desativado"
-        if (statusAnterior === "Ativo" && novoStatus === "Desativado") {
-          const confirmacao = await Swal.fire({
-            title: "Tem certeza?",
-            text: "Você realmente deseja desativar este cliente?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Sim, desativar!",
-            cancelButtonText: "Cancelar",
-          });
-
-          // Se o usuário cancelar, reverte o status e interrompe o salvamento
-          if (!confirmacao.isConfirmed) {
-            this.clienteTemp.Status = statusAnterior;
-            return;
-          }
-        }
-
-        // Continua o salvamento se não houver bloqueios
-        const clienteEnviado = { ...this.clienteTemp };
-        const response = await clienteService.updateCliente(clienteEnviado.id, clienteEnviado);
+        const response = await clienteService.updateCliente(this.clienteTemp.idzeus, this.clienteTemp);
 
         if (response) {
           this.$emit("atualizarClientes");
-
-          // Pequeno atraso para garantir o fluxo antes de exibir o alerta de sucesso
-          setTimeout(() => {
-            Swal.fire("Sucesso!", "As alterações foram salvas.", "success");
-          }, 300);
+          Swal.fire("Sucesso!", "As alterações foram salvas.", "success");
         } else {
           Swal.fire("Erro!", "Erro ao atualizar cliente.", "error");
         }
       } catch (error) {
         console.error("Erro ao salvar cliente editado:", error);
-        Swal.fire("Erro!", "Não foi possível salvar as alterações. Tente novamente.", "error");
+        Swal.fire("Erro!", "Não foi possível salvar as alterações.", "error");
       }
     },
 
-    
-    // Fechar o modal
     fecharModal() {
       this.$emit("fechar");
     },
@@ -291,4 +276,68 @@ button:hover {
 .btn-close:hover {
   background-color: #12283f;
 }
+
+/* Estilos do sub-modal */
+.sub-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sub-modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+}
+
+.maquininha-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.btn-remove {
+  background-color: #6052c0;
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btn-add {
+  background: #322871;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+}
+
+.btn-exitModal {
+  margin-top: 10px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+}
+
+.btn-save {
+  margin-top: 10px;
+  background: green;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+}
 </style>
+

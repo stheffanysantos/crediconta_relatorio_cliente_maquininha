@@ -79,15 +79,16 @@ export default {
     },
 
     async buscarArquivosImportados() {
-      try {
-        const response = await apiService.getImportedFiles();
-        if (response && response.data && response.data.arquivosImportados) {
-          this.arquivosImportados = response.data.arquivosImportados; // Acessando corretamente a estrutura da resposta
-        }
-      } catch (error) {
-        console.error("Erro ao buscar arquivos importados:", error);
+    try {
+      const response = await apiService.getImportedFiles();
+      if (response && response.data && response.data.arquivosImportados) {
+        this.arquivosImportados = response.data.arquivosImportados; // Acessando corretamente a estrutura da resposta
       }
-    },
+    } catch (error) {
+      console.error("Erro ao buscar arquivos importados:", error);
+    }
+  },
+
 
     formatarData(data) {
       const date = new Date(data);

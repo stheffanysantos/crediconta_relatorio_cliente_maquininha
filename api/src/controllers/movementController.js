@@ -12,7 +12,7 @@ export const createMovement = async (req, res) => {
 
     // Buscar o TotalPorcentage da tabela movements e garantir que o cliente existe
     const [movementsData] = await db.execute(
-      'SELECT Cliente, TotalPorcentage FROM movements WHERE id = ?',
+      'SELECT Cliente, TotalPorcentage FROM movements WHERE idzeus = ?',
       [cliente_id]
     );
 
@@ -61,7 +61,7 @@ export const createMovement = async (req, res) => {
 
  
     await db.execute(
-      'UPDATE movements SET TotalPorcentage = ? WHERE id = ?',
+      'UPDATE movements SET TotalPorcentage = ? WHERE idzeus = ?',
       [saldo_atual, cliente_id]
     );
 
@@ -73,7 +73,7 @@ export const createMovement = async (req, res) => {
       movimento, 
       valor_liquido: valorLiquidoFloat, 
       saldo_atual, 
-      prevenda: prevenda || '0.00',
+      prevenda: prevenda || '---',
       valoradicional: valorAdicional,
       valorsubtraido: valorSubtraido
     });
@@ -90,7 +90,7 @@ export const getMovementsByClient = async (req, res) => {
   try {
     // Buscar TotalPorcentage e Nome do Cliente na tabela movements
     const [movementsData] = await db.execute(
-      'SELECT Cliente, TotalPorcentage FROM movements WHERE id = ?',
+      'SELECT Cliente, TotalPorcentage FROM movements WHERE idzeus = ?',
       [cliente_id]
     );
 
@@ -114,6 +114,7 @@ export const getMovementsByClient = async (req, res) => {
   }
 };
 
+
 export const getLastModifiedClients = async (req, res) => {
   try {
     const [clientsData] = await db.execute(
@@ -128,7 +129,6 @@ export const getLastModifiedClients = async (req, res) => {
         ) AS latest
         ON v.cliente_id = latest.cliente_id AND v.data_movimentacao = latest.last_mov
         ORDER BY v.data_movimentacao DESC
-        LIMIT 6
       `
     );
 
@@ -143,5 +143,23 @@ export const getLastModifiedClients = async (req, res) => {
   }
 };
 
+export const getAllMovements = async (req, res) => {
+  try {
+    const [movements] = await db.execute(
+      `SELECT cliente_id, cliente_nome, data_movimentacao, movimento, valor_liquido, saldo_atual, prevenda 
+       FROM visualizaoperador 
+       ORDER BY data_movimentacao DESC`
+    );
+
+    if (!movements || movements.length === 0) {
+      return res.status(404).json({ error: 'Nenhuma movimentação encontrada.' });
+    }
+
+    res.status(200).json({ movements });
+  } catch (err) {
+    console.error('Erro ao buscar movimentações:', err);
+    res.status(500).json({ error: 'Erro interno do servidor ao buscar movimentações.' });
+  }
+};
 
 

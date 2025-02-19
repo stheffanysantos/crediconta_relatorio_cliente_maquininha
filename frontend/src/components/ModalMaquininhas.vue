@@ -52,6 +52,14 @@ export default {
       this.showModal = false;
     },
     addMaquininha() {
+      if (this.maquininhas.length >= 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Limite atingido",
+          text: "Cada cliente pode ter no máximo 2 maquininhas.",
+        });
+        return;
+      }
       this.maquininhas.push({ numeroSerie: "" });
     },
     async removeMaquininha(index) {

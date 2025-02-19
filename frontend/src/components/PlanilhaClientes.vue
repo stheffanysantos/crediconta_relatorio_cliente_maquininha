@@ -8,6 +8,10 @@
         <h1><strong>Cadastro de Cliente</strong></h1>
         <form @submit.prevent="addCliente">
           <div class="form-group">
+            <label for="idzeus">ID ZEUS</label>
+            <input type="text" id="idzeus" v-model="novoCliente.idzeus" required />
+          </div>
+          <div class="form-group">
             <label for="cliente">Cliente:</label>
             <input type="text" id="cliente" v-model="novoCliente.Cliente" required />
           </div>
@@ -47,7 +51,7 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>ID Zeus</th>
               <th>Cliente</th>
               <th>Maquineta</th>
               <th>Status</th>
@@ -60,7 +64,7 @@
           </thead>
           <tbody>
             <tr v-for="(cliente) in clientes.filter(c => c.Status === 'Ativo')" :key="cliente.id">
-              <td>{{ cliente.id }}</td>
+              <td>{{ cliente.idzeus }}</td>
               <td>{{ cliente.Cliente }}</td>
               <td>{{ cliente.Maquineta }}</td>
               <td>{{ cliente.Status }}</td>
@@ -124,6 +128,7 @@ export default {
       isTransferModalVisible: false, 
       maquininhaSelecionada: null, 
       novoCliente: {
+        idzeus: "",
         Cliente: "",
         Maquineta: "",
         Status: "Ativo",

@@ -45,6 +45,7 @@ export default {
         { name: 'Usuários', icon: ['fas', 'user'], route: '/' },
         { name: 'Notificações', icon: ['fas', 'bell'], route: '/movements' },
         { name: 'Produtos', icon: ['fas', 'box'], route: '/credito' },
+        { name: 'Notificações', icon: ['fas', 'bell'], route: '/movementsModal' },
       ],
     };
   },

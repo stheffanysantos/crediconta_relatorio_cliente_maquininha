@@ -5,6 +5,7 @@ import PlanilhaClientes from '../components/PlanilhaClientes.vue';
 import loginUser from '../components/loginUser.vue';
 import ImportCsv from '../components/ImportCsv.vue';
 import MovementsView from '../components/MovementsView.vue';
+import MovementsModal from '../components/MovementsModal.vue';
 
 // Defina suas rotas
 const routes = [
@@ -13,6 +14,7 @@ const routes = [
   { path: '/login', component: loginUser },
   { path: '/import-csv', component: ImportCsv },
   { path: '/movements', component: MovementsView },
+  { path: '/movementsModal', component: MovementsModal},
 ];
 
 // Crie e configure o Vue Router
