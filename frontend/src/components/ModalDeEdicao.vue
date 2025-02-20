@@ -19,11 +19,19 @@
             </select>
           </div>
 
-          <!-- Campo Número de Série -->
+          <!-- Número de Série 1 -->
           <div class="form-group">
-            <label for="numeroserie">Número de Série:</label>
+            <label for="numeroserie">Número de Série 1:</label>
             <div class="input-with-button">
               <input type="text" id="numeroserie" v-model="clienteTemp.numeroserie" readonly />
+            </div>
+          </div>
+
+          <!-- Número de Série 2 -->
+          <div class="form-group">
+            <label for="numeroserie2">Número de Série 2:</label>
+            <div class="input-with-button">
+              <input type="text" id="numeroserie2" v-model="clienteTemp.numeroserie2" readonly />
               <button type="button" @click="abrirModalMaquininhas" class="btn-icon">+</button>
             </div>
           </div>
@@ -53,17 +61,18 @@
     <div class="sub-modal-content">
       <h3>Adicionar Maquininha</h3>
       <div class="maquininha-list">
-        <!-- Primeira maquininha (não pode ser removida) -->
+        <!-- Primeira maquininha (obrigatória) -->
         <div class="maquininha-item">
           <input type="text" v-model="maquininhas[0]" placeholder="Número de Série" readonly />
         </div>
 
-        <!-- Segunda maquininha (pode ser removida) -->
+        <!-- Segunda maquininha (opcional, pode ser removida) -->
         <div v-if="maquininhas.length > 1" class="maquininha-item">
           <input type="text" v-model="maquininhas[1]" placeholder="Número de Série" />
           <button @click="removerSegundaMaquininha" class="btn-remove">X</button>
         </div>
       </div>
+
       
         <button @click="addMaquininha" class="btn btn-add">Adicionar</button>
         <button @click="salvarMaquininhas" class="btn btn-save">Salvar</button>
@@ -86,14 +95,17 @@ export default {
     },
     clienteEditado: {
       type: Object,
-      required: true,
+      default: () => ({}), // 🔹 Evita erro quando a prop é undefined
     },
   },
   data() {
     return {
       showModalMaquininhas: false,
-      maquininhas: [""],
+      maquininhas: ["", ""], // 🔹 Mantém dois espaços para as maquininhas
       clienteTemp: {
+        idzeus: "",
+        Cliente: "",
+        Status: "Ativo",
         numeroserie: "",
         numeroserie2: "",
         datainicial: "",
@@ -102,25 +114,38 @@ export default {
     };
   },
   watch: {
-    clienteEditado: {
-      handler(newCliente) {
-        if (newCliente) {
-          this.clienteTemp = {
-            ...newCliente,
-            datainicial: newCliente.datainicial ? newCliente.datainicial.split("T")[0] : "",
-            datafinal: newCliente.datafinal ? newCliente.datafinal.split("T")[0] : "",
-          };
-          this.maquininhas = newCliente.numeroserie ? newCliente.numeroserie.split(", ") : [];
-        }
-      },
-      immediate: true,
-      deep: true,
+  clienteEditado: {
+    handler(newCliente) {
+      if (!newCliente || Object.keys(newCliente).length === 0) {
+        console.warn("⚠️ Nenhum cliente para editar!", newCliente);
+        return;
+      }
+
+      this.clienteTemp = {
+        idzeus: newCliente.idzeus || "",
+        Cliente: newCliente.Cliente || "",
+        Status: newCliente.Status || "Ativo",
+        numeroserie: newCliente.numeroserie || "",
+        numeroserie2: newCliente.numeroserie2 || "",
+        datainicial: newCliente.datainicial ? newCliente.datainicial.split("T")[0] : "",
+        datafinal: newCliente.datafinal ? newCliente.datafinal.split("T")[0] : "",
+      };
+
+      this.maquininhas = [
+        newCliente.numeroserie || "",
+        newCliente.numeroserie2 || "",
+      ];
     },
+    immediate: true,
+    deep: true,
   },
+},
   methods: {
     abrirModalMaquininhas() {
-      // Carrega as maquininhas do cliente para edição
-      this.maquininhas = [this.clienteTemp.numeroserie, this.clienteTemp.numeroserie2].filter(Boolean);
+      this.maquininhas = [
+        this.clienteTemp.numeroserie,
+        this.clienteTemp.numeroserie2,
+      ].filter(Boolean);
       this.showModalMaquininhas = true;
     },
 
@@ -137,29 +162,64 @@ export default {
     },
 
     salvarMaquininhas() {
-      // Define os valores das maquininhas no clienteTemp
       this.clienteTemp.numeroserie = this.maquininhas[0] || "";
       this.clienteTemp.numeroserie2 = this.maquininhas[1] || "";
       this.showModalMaquininhas = false;
     },
 
-
-    formatarNumerosSerie() {
-      return this.maquininhas.join(", ");
-    },
-
     async salvarClienteEditado() {
       try {
-        const response = await clienteService.updateCliente(this.clienteTemp.idzeus, this.clienteTemp);
+        console.log("📤 Enviando dados para API:", this.clienteTemp);
+
+        if (!this.clienteTemp.idzeus) {
+          console.error("❌ Erro: idzeus está indefinido!", this.clienteTemp);
+          Swal.fire("Erro!", "ID do cliente não encontrado.", "error");
+          return;
+        }
+
+        const statusAnterior = this.clienteEditado.Status;
+        const novoStatus = this.clienteTemp.Status;
+
+        // 🔹 Se o status não mudou, fecha o modal e sai
+        if (statusAnterior === novoStatus) {
+          this.fecharModal();
+          return;
+        }
+
+        // 🔹 Confirmação antes de desativar um cliente
+        if (statusAnterior === "Ativo" && novoStatus === "Desativado") {
+          const confirmacao = await Swal.fire({
+            title: "Tem certeza?",
+            text: "Você realmente deseja desativar este cliente?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Sim, desativar!",
+            cancelButtonText: "Cancelar",
+          });
+
+          // Se cancelar, reverte o status e sai
+          if (!confirmacao.isConfirmed) {
+            this.clienteTemp.Status = statusAnterior;
+            return;
+          }
+        }
+
+        // 🔹 Atualiza os dados do cliente no backend
+        const response = await clienteService.updateCliente(this.clienteTemp.idzeus, {
+          ...this.clienteTemp,
+        });
 
         if (response) {
-          this.$emit("atualizarClientes");
+          this.$emit("salvarClienteEditado");
           Swal.fire("Sucesso!", "As alterações foram salvas.", "success");
+          window.location.reload(); // 🔹 Atualiza a página
         } else {
           Swal.fire("Erro!", "Erro ao atualizar cliente.", "error");
         }
       } catch (error) {
-        console.error("Erro ao salvar cliente editado:", error);
+        console.error("❌ Erro ao salvar cliente editado:", error);
         Swal.fire("Erro!", "Não foi possível salvar as alterações.", "error");
       }
     },
@@ -170,6 +230,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 

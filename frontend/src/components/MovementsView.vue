@@ -183,12 +183,19 @@ export default {
         return;
       }
 
+      let valorFinal = parseFloat(this.valorEntrada);
+
+      // Se o tipo de entrada for "Pix", aplica o desconto de 5%
+      if (this.tipoEntrada === 'Pix') {
+        valorFinal *= 0.95; // Reduz 5% do valor
+      }
+
       try {
         const movimentoData = {
           cliente_id: this.clienteSelecionado.id,
           cliente_nome: this.clienteSelecionado.nome,
           movimento: 'entrada',
-          valor_liquido: parseFloat(this.valorEntrada),
+          valor_liquido: valorFinal, // Usa o valor ajustado
         };
 
         await movementService.createMovement(movimentoData);
@@ -200,6 +207,9 @@ export default {
         Swal.fire({
           icon: 'success',
           title: 'Entrada efetuada com sucesso!',
+          text: this.tipoEntrada === 'Pix' 
+            ? `Desconto de 5% aplicado. Valor final: R$ ${valorFinal.toFixed(2)}` 
+            : '',
           showConfirmButton: false,
           timer: 2000,
         });

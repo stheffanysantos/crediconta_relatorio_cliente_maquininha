@@ -15,7 +15,7 @@ export const getCliente = async (_, res) => {
 
 // Função para adicionar cliente
 export const addCliente = async (req, res) => {
-  const q = "INSERT INTO movements (`idzeus`,`Cliente`, `Maquineta`, `Status`, `numeroserie`,`numeroserie2`, `datainicial`) VALUES (?)";
+  const q = "INSERT INTO movements (`idzeus`,`Cliente`, `Maquineta`, `Status`, `numeroserie`,`numeroserie2`, `datainicial`, `datafinal`) VALUES (?)";
   const values = [
     req.body.idzeus,
     req.body.Cliente,
@@ -24,6 +24,7 @@ export const addCliente = async (req, res) => {
     req.body.numeroserie,
     req.body.numeroserie2,
     req.body.datainicial,
+    req.body.datafinal,
   ];
 
   try {
@@ -41,7 +42,7 @@ export const addCliente = async (req, res) => {
 
 // Função para atualizar cliente
 export const updateCliente = async (req, res) => {
-  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?,`numeroserie2` = ?, `datainicial` = ?, `DataFinal` = ?, `TotalPorcentage` = ? WHERE `idzeus` = ?";
+  const q = "UPDATE movements SET `Cliente` = ?,`Maquineta` = ?, `Status` = ?, `numeroserie` = ?,`numeroserie2` = ?, `datainicial` = ?, `datafinal` = ?, `TotalPorcentage` = ? WHERE `idzeus` = ?";
   
   const values = [
     req.body.Cliente,
@@ -50,10 +51,12 @@ export const updateCliente = async (req, res) => {
     req.body.numeroserie,
     req.body.numeroserie2,
     req.body.datainicial,
-    req.body.DataFinal,
+    req.body.datafinal ,
     req.body.TotalPorcentage,
     req.body.idzeus,
   ];
+  console.log("Dados recebidos para atualização:", req.body);
+
 
   try {
     const [result] = await db.query(q, [...values, req.params.idzeus]);
@@ -63,6 +66,7 @@ export const updateCliente = async (req, res) => {
     }
 
     return res.status(200).json({ message: "Cliente atualizado com sucesso" });
+
   } catch (err) {
     console.error('Erro ao atualizar cliente:', err.message); // Erro detalhado
     return res.status(500).json({ message: "Erro ao atualizar cliente", error: err.message });

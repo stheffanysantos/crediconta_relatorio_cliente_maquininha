@@ -93,8 +93,9 @@
       :isVisible="isEditing"
       :clienteEditado="clienteEditado"
       @fechar="fecharModal"
-      @salvarClienteEditado="salvarClienteEditado" 
+      @salvarClienteEditado="atualizarClientes"
     />
+
 
     <modal-transferencia
       v-if="isTransferModalVisible"
@@ -124,18 +125,19 @@ export default {
     return {
       clientes: [],
       isEditing: false,
-      clienteEditado: null,
+      clienteEditado: {},
       isTransferModalVisible: false, 
       maquininhaSelecionada: null, 
       novoCliente: {
-        idzeus: "",
+        idzeus: "", // Corrigido
         Cliente: "",
         Maquineta: "",
         Status: "Ativo",
         numeroserie: "",
+        numeroserie2: "",
         datainicial: "",
-        DataFinal: "",
-        TotalPorcentage:"",
+        datafinal: "", // Corrigido (antes estava "DataFinal", e no backend é "datafinal")
+        TotalPorcentage: "",
       },
     };
   },
@@ -143,7 +145,7 @@ export default {
     async getClientes() {
       try {
         const response = await clienteService.getClientes();
-        console.log("Clientes carregados:", response); 
+        console.log("Clientes carregados:", response);
         this.clientes = response;
       } catch (error) {
         console.error("Erro ao carregar clientes:", error.response?.data || error.message);
@@ -152,29 +154,41 @@ export default {
 
     async addCliente() {
       try {
-        const existeMaquininhaAtiva = this.clientes.find(cliente => 
-          cliente.numeroserie === this.novoCliente.numeroserie && cliente.Status.toLowerCase() === 'Ativo'
+        // Verifica se a maquininha já está ativa em outro cliente
+        const existeMaquininhaAtiva = this.clientes.find(
+          (cliente) =>
+            cliente.numeroserie === this.novoCliente.numeroserie &&
+            cliente.Status.toLowerCase() === "ativo"
         );
 
         if (existeMaquininhaAtiva) {
-          const confirmarTransferencia = confirm(`A maquininha ${this.novoCliente.numeroserie} já está ativada em outro cliente. Deseja transferi-la para este cliente?`);
+          const confirmarTransferencia = confirm(
+            `A maquininha ${this.novoCliente.numeroserie} já está ativada em outro cliente. Deseja transferi-la para este cliente?`
+          );
+
           if (!confirmarTransferencia) {
             return;
           } else {
-          
-            await clienteService.updateCliente(existeMaquininhaAtiva.id, { Status: 'desativado' });
+            // Desativa a maquininha do cliente anterior
+            await clienteService.updateCliente(existeMaquininhaAtiva.idzeus, { Status: "Desativado" });
           }
         }
 
-        const response = await clienteService.addCliente(this.novoCliente);
+        // Adiciona o novo cliente com os números de série
+        const response = await clienteService.addCliente({
+          ...this.novoCliente,
+          numeroserie: this.novoCliente.numeroserie,
+          numeroserie2: this.novoCliente.numeroserie2,
+        });
+
         console.log("Resposta da API ao adicionar cliente:", response);
 
-        if (response && response.id) {
+        if (response && response.idzeus) {
           this.resetForm();
-          this.getClientes(); 
+          this.getClientes();
         } else {
-          console.error("Cliente adicionado não possui um id:", response);
-          alert("Erro ao adicionar cliente. Cliente adicionado não possui um id.");
+          console.error("Cliente adicionado não possui um idzeus:", response);
+          alert("Erro ao adicionar cliente. Cliente adicionado não possui um idzeus.");
         }
       } catch (error) {
         console.error("Erro ao adicionar cliente:", error.response?.data || error.message);
@@ -184,24 +198,22 @@ export default {
 
     async salvarClienteEditado(clienteAtualizado) {
       try {
-        // Lógica de verificação (maquininha, status, etc.) e atualização via API
-        const response = await clienteService.updateCliente(clienteAtualizado.id, clienteAtualizado);
+        const response = await clienteService.updateCliente(clienteAtualizado.idzeus, clienteAtualizado);
         console.log("Resposta da API ao atualizar cliente:", response);
 
-        // Atualiza a lista local de clientes
-        const index = this.clientes.findIndex((c) => c.id === clienteAtualizado.id);
+        // Atualiza a lista local de clientes corretamente
+        const index = this.clientes.findIndex((c) => c.idzeus === clienteAtualizado.idzeus);
         if (index !== -1) {
-          this.clientes.splice(index, 1, { ...clienteAtualizado, ...response });
+          this.clientes.splice(index, 1, { ...this.clientes[index], ...clienteAtualizado });
         }
 
-        this.fecharModal(); // Fecha o modal após a atualização
+        this.fecharModal();
         Swal.fire("Sucesso!", "Cliente atualizado com sucesso.", "success");
       } catch (error) {
         console.error("Erro ao salvar cliente editado:", error);
         Swal.fire("Erro!", "Erro ao salvar cliente editado. Tente novamente.", "error");
       }
     },
-
 
     async excluirCliente(index) {
       const { isConfirmed } = await Swal.fire({
@@ -216,18 +228,17 @@ export default {
       });
 
       if (isConfirmed) {
-      try {
-        const cliente = this.clientes[index];
-        await clienteService.deleteCliente(cliente.id);
-        this.getClientes();
-        Swal.fire("Excluído!", "O cliente foi excluído com sucesso.", "success");
+        try {
+          const cliente = this.clientes[index];
+          await clienteService.deleteCliente(cliente.idzeus); // Corrigido
+          this.getClientes();
+          Swal.fire("Excluído!", "O cliente foi excluído com sucesso.", "success");
         } catch (error) {
           console.error("Erro ao excluir cliente:", error.response?.data || error.message);
           Swal.fire("Erro!", "Não foi possível excluir o cliente. Tente novamente.", "error");
         }
-    }
+      }
     },
-    
 
     formatarData(data) {
       if (!data) return "";
@@ -240,19 +251,25 @@ export default {
 
     resetForm() {
       this.novoCliente = {
-        cliente: "",
-        status: "Ativo",
+        idzeus: "", // Corrigido
+        Cliente: "",
+        Maquineta: "",
+        Status: "Ativo",
         numeroserie: "",
         datainicial: "",
-        datafinal: "",
+        datafinal: "", // Corrigido
+        TotalPorcentage: "",
       };
     },
 
     editarCliente(cliente) {
-      this.clienteEditado = JSON.parse(JSON.stringify(cliente)); // Clonagem profunda para evitar efeitos colaterais
+      if (!cliente || !cliente.idzeus) {
+        console.error("Erro: Cliente inválido ou sem ID!", cliente);
+        return;
+      }
+      this.clienteEditado = { ...cliente }; // Garante que idzeus sempre estará presente
       this.isEditing = true;
     },
-
 
     fecharModal() {
       this.isEditing = false;
@@ -263,18 +280,16 @@ export default {
       this.getClientes();
     },
 
-    // Abrir o modal de transferência
     abrirTransferModal(cliente) {
       this.maquininhaSelecionada = cliente;
       this.isTransferModalVisible = true;
     },
-        // Fechar o modal de transferência
+
     fecharTransferModal() {
       this.isTransferModalVisible = false;
       this.maquininhaSelecionada = null;
     },
 
-    // Realizar a transferência da maquininha
     async realizarTransferencia(clienteDestino) {
       try {
         const payload = {
@@ -282,10 +297,8 @@ export default {
           maquininhaId: this.maquininhaSelecionada.numeroserie,
         };
 
-        // Chama a API para realizar a transferência
         await transferenciaService.realizarTransferencia(payload);
 
-        // Atualiza a lista de clientes após a transferência
         this.getClientes();
         this.fecharTransferModal();
         alert("Transferência realizada com sucesso!");

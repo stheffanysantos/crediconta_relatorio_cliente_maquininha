@@ -23,12 +23,19 @@ const clienteService = {
     }
   },
 
-  async updateCliente(id, clienteAtualizado) {
+async updateCliente(id, clienteAtualizado) {
     try {
-      const response = await axios.put(`${API_BASE_URL}/${id}`, clienteAtualizado);
+      // Verifica se o ID foi fornecido corretamente
+      if (!id) {
+        throw new Error("ID do cliente é obrigatório para atualização.");
+      }
+
+      console.log("📡 Enviando dados para atualização:", clienteAtualizado);
+
+      const response = await axios.put(`${API_BASE_URL}/cliente/${id}`, clienteAtualizado);
       return response.data;
     } catch (error) {
-      console.error("Erro ao atualizar cliente:", error.response?.data || error.message);
+      console.error("❌ Erro ao atualizar cliente:", error.response?.data || error.message);
       throw error;
     }
   },
