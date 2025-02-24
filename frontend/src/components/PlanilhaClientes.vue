@@ -1,6 +1,21 @@
 <template>
   <div class="app">
     <div class="main-container">
+    <!-- Filtros -->
+      <div class="filtro-container">
+        <h2>Filtros</h2>
+        <div class="form-group">
+          <label for="filtroCliente">Cliente:</label>
+          <input type="text" id="filtroCliente" v-model="filtro.Cliente" placeholder="Digite o nome do cliente" />
+        </div>
+        <div class="form-group">
+          <label for="filtroNumeroSerie">Número de Série:</label>
+          <input type="text" id="filtroNumeroSerie" v-model="filtro.numeroserie" placeholder="Digite o número de série" />
+        </div>
+        <button @click="limparFiltros" class="btn">Limpar Filtros</button>
+      </div>
+
+    <div class="cadastro-relatorio-container">
       <div class="form-container">
         <div class="image-bolota">
       <img src="@/assets/iconbolota.png" alt="icone ao lado do filtro" height="90" />
@@ -63,7 +78,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(cliente) in clientes.filter(c => c.Status === 'Ativo')" :key="cliente.id">
+            <tr v-for="cliente in clientesFiltrados" :key="cliente.idzeus">
               <td>{{ cliente.idzeus }}</td>
               <td>{{ cliente.Cliente }}</td>
               <td>{{ cliente.Maquineta }}</td>
@@ -87,6 +102,7 @@
         </table>
       </div>
     </div>
+  </div>
 
     <!-- Modal de Edição -->
     <ModalDeEdicao
@@ -124,6 +140,10 @@ export default {
   data() {
     return {
       clientes: [],
+      filtro: {
+      Cliente: "",
+      numeroserie: ""
+    },
       isEditing: false,
       clienteEditado: {},
       isTransferModalVisible: false, 
@@ -136,11 +156,21 @@ export default {
         numeroserie: "",
         numeroserie2: "",
         datainicial: "",
-        datafinal: "", // Corrigido (antes estava "DataFinal", e no backend é "datafinal")
+        //datafinal: "", // Corrigido (antes estava "DataFinal", e no backend é "datafinal")
         TotalPorcentage: "",
       },
     };
   },
+  computed: {
+    clientesFiltrados() {
+      return this.clientes.filter((c) => {
+        const clienteMatch = this.filtro.Cliente ? (c.Cliente || "").toLowerCase().includes(this.filtro.Cliente.toLowerCase()) : true;
+        const numeroSerieMatch = this.filtro.numeroserie ? (c.numeroserie || "").toLowerCase().includes(this.filtro.numeroserie.toLowerCase()) : true;
+        return c.Status === "Ativo"  && clienteMatch && numeroSerieMatch;
+      });
+    }
+  },
+
   methods: {
     async getClientes() {
       try {
@@ -262,6 +292,11 @@ export default {
       };
     },
 
+    limparFiltros() {
+      this.filtro.Cliente = "";
+      this.filtro.numeroserie = "";
+    },
+
     editarCliente(cliente) {
       if (!cliente || !cliente.idzeus) {
         console.error("Erro: Cliente inválido ou sem ID!", cliente);
@@ -320,48 +355,91 @@ export default {
   @import url(https://fonts.googleapis.com/css?family=Nunito:200,300,regular,500,600,700,800,900,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic);
 
   .app {
-    font-family: Nunito, Tahoma, Geneva, Verdana, sans-serif;
-    margin: 20px auto;
-    max-width: 90%; 
-    background: #f4f7fb;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: Nunito, Tahoma, Geneva, Verdana, sans-serif;
+  margin: 20px auto;
+  max-width: 90%;
+  background: #f4f7fb;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-  }
+.main-container {
+  display: flex;
+  flex-direction: column; /* Filtro no topo */
+  gap: 20px;
+  margin: 0 auto;
+  width: 100%;
+}
 
-  .main-container {
-    display: flex;
-    gap: 20px;
-    margin: 0 auto; 
-  }
+.filtro-container {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
 
-  .form-container, 
-  .relatorio-container {
-    background: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 10px; 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+.filtro-container h2 {
+  font-size: 20px;
+  color: #322871;
+  margin-bottom: 15px;
+}
 
-  .form-container {
-    margin-right: 20px;
-    padding: 20px;
-    align-items: center;
-    background-color: #ffffff;
-  }
+.filtro-container .form-group {
+  margin-bottom: 15px;
+}
 
-  .relatorio-container {
-    width: 100%;
-    margin-left: 0;
-  }
+.filtro-container label {
+  font-size: 14px;
+  color: #412884;
+  display: block;
+  margin-bottom: 5px;
+}
 
-  .image-bolota{
-    display: flex;
-    align-items: center;
-    padding: 15px;
-  }
+.filtro-container input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+
+/* Container para o cadastro e relatório lado a lado */
+.cadastro-relatorio-container {
+  display: flex;
+  flex-direction: row; /* Lado a lado */
+  gap: 10px; /* Espaçamento entre o cadastro e relatório */
+  width: 100%;
+  flex-wrap: wrap; /* Garante que os itens não quebrem de forma inesperada */
+}
+
+.form-container, 
+.relatorio-container {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1; /* Ambos ocupam o mesmo espaço */
+  margin-bottom: 20px; /* Adiciona espaçamento abaixo para o layout */
+}
+
+.form-container {
+  padding: 15px;
+}
+
+.relatorio-container {
+  padding: 15px;
+}
+
+.image-bolota {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+}
 
   h1 {
     font-size: 24px;
@@ -445,7 +523,6 @@ export default {
   }
 
   .btn {
-    padding: 25px 20px;
     border-radius: 5px;
   }
 
@@ -466,7 +543,6 @@ export default {
   .btn-delete:hover {
     background: #9a2e2f;
   }
-
   
   @media (max-width: 768px) {
     .main-container {
@@ -484,5 +560,6 @@ export default {
     }
   }
 </style>
+
 
   

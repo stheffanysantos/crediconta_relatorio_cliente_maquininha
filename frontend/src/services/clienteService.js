@@ -23,16 +23,15 @@ const clienteService = {
     }
   },
 
-async updateCliente(id, clienteAtualizado) {
+  async updateCliente(idzeus, clienteAtualizado) {
     try {
-      // Verifica se o ID foi fornecido corretamente
-      if (!id) {
-        throw new Error("ID do cliente é obrigatório para atualização.");
+      if (!idzeus) {
+        throw new Error("IDZEUS do cliente é obrigatório para atualização.");
       }
 
       console.log("📡 Enviando dados para atualização:", clienteAtualizado);
 
-      const response = await axios.put(`${API_BASE_URL}/cliente/${id}`, clienteAtualizado);
+      const response = await axios.put(`${API_BASE_URL}/cliente/${idzeus}`, clienteAtualizado);
       return response.data;
     } catch (error) {
       console.error("❌ Erro ao atualizar cliente:", error.response?.data || error.message);
@@ -40,9 +39,9 @@ async updateCliente(id, clienteAtualizado) {
     }
   },
 
-  async deleteCliente(id) {
+  async deleteCliente(idzeus) {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/${id}`);
+      const response = await axios.delete(`${API_BASE_URL}/${idzeus}`);
       return response.data;
     } catch (error) {
       console.error("Erro ao excluir cliente:", error.response?.data || error.message);
@@ -50,17 +49,15 @@ async updateCliente(id, clienteAtualizado) {
     }
   },
 
-
-async deactivateCliente(id) {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/${id}`, { Status: "Desativado" });
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao desativar cliente:", error.response?.data || error.message);
-    throw error;
+  async deactivateCliente(idzeus) {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/${idzeus}`, { Status: "Desativado" });
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao desativar cliente:", error.response?.data || error.message);
+      throw error;
+    }
   }
-}
-
 };
 
 export default clienteService;

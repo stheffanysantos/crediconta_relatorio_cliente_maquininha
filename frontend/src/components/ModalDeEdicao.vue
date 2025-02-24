@@ -127,8 +127,8 @@ export default {
         Status: newCliente.Status || "Ativo",
         numeroserie: newCliente.numeroserie || "",
         numeroserie2: newCliente.numeroserie2 || "",
-        datainicial: newCliente.datainicial ? newCliente.datainicial.split("T")[0] : "",
-        datafinal: newCliente.datafinal ? newCliente.datafinal.split("T")[0] : "",
+        datainicial: newCliente.datainicial ? newCliente.datainicial.split("T")[0] : null, //lembrar de tirar 
+        datafinal: newCliente.datafinal ? newCliente.datafinal.split("T")[0] : null,
       };
 
       this.maquininhas = [
@@ -401,4 +401,3 @@ button:hover {
   border-radius: 6px;
 }
 </style>
-

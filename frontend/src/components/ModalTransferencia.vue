@@ -5,7 +5,7 @@
       <p>Selecione o novo cliente para a maquininha {{ maquininhaSelecionada.numeroserie }}.</p> 
       <label for="clienteDestino">Novo Cliente:</label>
       <select v-model="clienteDestino">
-        <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">
+        <option v-for="cliente in clientes" :key="cliente.idzeus" :value="cliente.idzeus">
           {{ cliente.cliente }}
         </option>
       </select>

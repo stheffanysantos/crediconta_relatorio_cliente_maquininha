@@ -41,11 +41,11 @@ export default {
         role: 'Lorem Ipsum',
       },
       menuItems: [
-        { name: 'Dashboard', icon: ['fas', 'chart-line'], route: '/import-csv' },
-        { name: 'Usuários', icon: ['fas', 'user'], route: '/' },
-        { name: 'Notificações', icon: ['fas', 'bell'], route: '/movements' },
-        { name: 'Produtos', icon: ['fas', 'box'], route: '/credito' },
-        { name: 'Notificações', icon: ['fas', 'bell'], route: '/movementsModal' },
+        { name: 'Usuários', icon: ['fas', 'users'], route: '/' },
+        { name: 'CSV', icon: ['fas', 'download'], route: '/import-csv' },
+        { name: 'Menu', icon: ['fas', 'money-bill-transfer'], route: '/movements' },
+        { name: 'Notificações', icon: ['fas', 'clipboard-list'], route: '/movementsModal' },
+        { name: 'Produtos', icon: ['fas', 'coins'], route: '/credito' },
       ],
     };
   },
@@ -197,6 +197,7 @@ body {
   text-align: start;
   cursor: pointer;
   background-color: transparent;
+  color: #0a0a0a;
 }
 
 #open_btn {
