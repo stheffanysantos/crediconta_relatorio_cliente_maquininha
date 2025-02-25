@@ -3,7 +3,8 @@ import {
   createMovement, 
   getMovementsByClient, 
   getLastModifiedClients, 
-  getAllMovements 
+  getAllMovements,
+  getMovementsByClientName
 } from "../controllers/movementController.js";
 
 const router = express.Router();
@@ -13,6 +14,8 @@ router.post("/", createMovement);
 
 // Rota para obter todas as movimentações (correta agora)
 router.get("/clientes", getAllMovements);
+
+router.get("/clientes/:cliente_nome", getMovementsByClientName);
 
 // Rota para obter os últimos clientes modificados
 router.get("/ultimos-modificados", getLastModifiedClients);

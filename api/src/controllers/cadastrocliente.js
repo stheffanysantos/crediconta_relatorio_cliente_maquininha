@@ -59,7 +59,7 @@ export const updateCliente = async (req, res) => {
 
 
   try {
-    const [result] = await db.query(q, [...values, req.params.idzeus]);
+    const [result] = await db.query(q, values);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Cliente não encontrado" }); // Caso o cliente não seja encontrado

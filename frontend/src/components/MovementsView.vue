@@ -7,12 +7,40 @@
 
       <div class="main-content">
         <h2>Movimentações do Cliente</h2>
-
+        <!-- Campo de busca por ID -->
+        <label for="filtroCliente">Cliente ID:</label>
         <input
-          v-model="searchQuery"
+          v-model="searchQueryId"
+          placeholder="Buscar Id..."
+          @input="buscarCliente"
+        />
+        
+        <!-- Campo de busca por Nome -->
+        <label for="filtroCliente">Cliente Nome:</label>
+        <input
+          v-model="searchQueryNome"
           placeholder="Buscar cliente..."
           @input="buscarCliente"
         />
+
+        <!-- Lista de sugestões de clientes -->
+        <div v-if="clientesEncontrados.length > 0" class="sugestoes">
+          <ul>
+            <li v-for="cliente in clientesEncontrados" :key="cliente.id" @click="selecionarCliente(cliente)" class="cliente-item">
+              {{ cliente.nome }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Lista de clientes encontrados -->
+        <div v-if="clientesEncontrados.length > 0">
+          <h3>Clientes Encontrados</h3>
+          <ul>
+            <li v-for="cliente in clientesEncontrados" :key="cliente.id" @click="selecionarCliente(cliente)" class="cliente-item">
+              {{ cliente.nome }}
+            </li>
+          </ul>
+        </div>
 
         <div v-if="clienteSelecionado">
           <h3>{{ clienteSelecionado.nome }}</h3>
@@ -48,7 +76,6 @@
           <button class="btn-subtrair" @click="abrirModalSaida">Subtrair Valor</button>
         </div>
 
-
         <!-- Modal de Entrada -->
         <div v-if="mostrarModalEntrada" class="modal-overlay">
           <div class="modal-content animate-slide-down">
@@ -66,7 +93,6 @@
             <button class="btn-confirm" @click="realizarEntrada">Adicionar</button>
           </div>
         </div>
-
 
         <!-- Modal de Saída -->
         <div v-if="mostrarModalSaida" class="modal-overlay">
@@ -111,6 +137,8 @@
   </div>
 </template>
 
+
+
 <script>
 import movementService from '@/services/MovementsViewService';
 import Swal from 'sweetalert2';
@@ -122,6 +150,7 @@ export default {
       searchQueryId: '',
       searchQueryNome: '',
       clienteSelecionado: null,
+      clientesEncontrados: [],
       movimentacoes: [],
       saldoAtual: 0,
       mostrarModalEntrada: false,
@@ -135,24 +164,53 @@ export default {
   },
   methods: {
     async buscarCliente() {
-        if (!this.searchQuery) return;
+      // Se o campo 'id' for preenchido, busque por ID
+      if (this.searchQueryId && !this.searchQueryNome) {
+        const clienteId = parseInt(this.searchQueryId);
+        if (isNaN(clienteId)) {
+          alert("O ID do cliente deve ser um número válido.");
+          return;
+        }
         try {
-          const clienteId = parseInt(this.searchQuery); // Use o ID do cliente conforme esperado no backend
-          if (isNaN(clienteId)) {
-            alert("O ID do cliente deve ser um número válido.");
-            return;
-          }
-
-          const data = await movementService.getMovementsByClient(clienteId);  // Enviar o idZeus para a requisição
+          const data = await movementService.getMovementsByClient(clienteId);
           if (data) {
             this.clienteSelecionado = { nome: data.cliente_nome, id: clienteId };
             this.movimentacoes = data.movimentacoes || [];
+            this.movimentacoes = data.movimentacoes.slice(0, 3) || [];
             this.saldoAtual = parseFloat(data.totalPorcentage) || 0;
           }
         } catch (error) {
-          console.error('Erro ao buscar cliente:', error);
+          console.error('Erro ao buscar cliente por ID:', error);
         }
-      },
+      }
+      // Busca por nome de cliente
+      else if (this.searchQueryNome && !this.searchQueryId) {
+        const clienteNome = this.searchQueryNome.trim();
+        if (!clienteNome) {
+          this.clientesEncontrados = [];
+          alert("O nome do cliente não pode estar vazio.");
+          return;
+        }
+        try {
+          const data = await movementService.getMovementsByClientName(clienteNome);
+          console.log('Dados recebidos:', data); 
+          if (data) {
+            this.clienteSelecionado = { nome: data.cliente_nome, id: data.cliente_id };
+            this.movimentacoes = data.movimentacoes.slice(0, 3) || [];
+            this.saldoAtual = parseFloat(data.totalPorcentage) || 0;
+          }
+        } catch (error) {
+          console.error('Erro ao buscar cliente por nome:', error);
+        }
+      }
+    },
+
+    selecionarCliente(cliente) {
+      this.clienteSelecionado = cliente;
+      this.searchQueryNome = cliente.nome; // Exibe o nome do cliente selecionado no input
+      this.clientesEncontrados = []; // Limpa a lista de sugestões após a seleção
+      // Carregar mais dados do cliente, como movimentações, por exemplo
+    },
 
     async buscarUltimosClientes() {
       try {
@@ -163,14 +221,6 @@ export default {
       } catch (error) {
         console.error('Erro ao buscar últimos clientes:', error);
       }
-    },
-
-    abrirModalEntrada() {
-      this.mostrarModalEntrada = true;
-    },
-
-    abrirModalSaida() {
-      this.mostrarModalSaida = true;
     },
 
     async realizarEntrada() {
@@ -185,9 +235,8 @@ export default {
 
       let valorFinal = parseFloat(this.valorEntrada);
 
-      // Se o tipo de entrada for "Pix", aplica o desconto de 5%
       if (this.tipoEntrada === 'Pix') {
-        valorFinal *= 0.95; // Reduz 5% do valor
+        valorFinal *= 0.95;
       }
 
       try {
@@ -195,7 +244,7 @@ export default {
           cliente_id: this.clienteSelecionado.id,
           cliente_nome: this.clienteSelecionado.nome,
           movimento: 'entrada',
-          valor_liquido: valorFinal, // Usa o valor ajustado
+          valor_liquido: valorFinal,
         };
 
         await movementService.createMovement(movimentoData);
@@ -203,12 +252,11 @@ export default {
         this.mostrarModalEntrada = false;
         this.valorEntrada = 0;
 
-        // SweetAlert de Sucesso
         Swal.fire({
           icon: 'success',
           title: 'Entrada efetuada com sucesso!',
           text: this.tipoEntrada === 'Pix' 
-            ? `Desconto de 5% aplicado. Valor final: R$ ${valorFinal.toFixed(2)}` 
+            ? `Desconto de 5% aplicado. Valor final: R$ ${valorFinal.toFixed(2)}`
             : '',
           showConfirmButton: false,
           timer: 2000,
@@ -266,7 +314,6 @@ export default {
         this.valorSaida = 0;
         this.prevenda = '';
 
-        // SweetAlert de Sucesso
         Swal.fire({
           icon: 'success',
           title: 'Saída efetuada com sucesso!',
@@ -286,12 +333,22 @@ export default {
     formatarData(data) {
       return new Date(data).toLocaleDateString();
     },
+
+    abrirModalEntrada() {
+      this.mostrarModalEntrada = true;
+    },
+
+    abrirModalSaida() {
+      this.mostrarModalSaida = true;
+    },
   },
+
   mounted() {
     this.buscarUltimosClientes();
   },
 };
 </script>
+
 
 <style scoped>
 .container {

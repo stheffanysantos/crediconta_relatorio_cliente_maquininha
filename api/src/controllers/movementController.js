@@ -162,4 +162,34 @@ export const getAllMovements = async (req, res) => {
   }
 };
 
+export const getMovementsByClientName = async (req, res) => {
+  const { cliente_nome } = req.params;
+
+  try {
+    // Buscar o cliente na tabela movements usando nome com correspondência parcial
+    const [movementsData] = await db.execute(
+      'SELECT idzeus, TotalPorcentage FROM movements WHERE Cliente LIKE ?',
+      [`%${cliente_nome}%`]  // Aqui usamos % para busca parcial
+    );
+
+    if (!movementsData.length) {
+      return res.status(404).json({ error: 'Cliente não encontrado na tabela movements' });
+    }
+
+    let cliente_id = movementsData[0].idzeus;
+    let totalPorcentage = movementsData[0].TotalPorcentage;
+
+    // Buscar movimentações na visualizaoperador
+    const [movimentacoes] = await db.execute(
+      'SELECT * FROM visualizaoperador WHERE cliente_id = ? ORDER BY data_movimentacao DESC',
+      [cliente_id]
+    );
+
+    res.json({ cliente_id, cliente_nome, totalPorcentage, movimentacoes });
+  } catch (err) {
+    console.error('Erro ao buscar movimentações por nome de cliente:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
